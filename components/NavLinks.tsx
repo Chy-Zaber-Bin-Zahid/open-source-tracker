@@ -5,23 +5,17 @@ import { usePathname } from "next/navigation";
 
 const links = [
   { href: "/", label: "Contributions" },
-  { href: "/activity", label: "Activity" },
   { href: "/members", label: "Members" },
 ];
 
 export function NavLinks() {
   const pathname = usePathname();
   return (
-    <nav aria-label="Main" className="flex items-center gap-5 text-sm font-bold">
+    <nav className="flex items-center gap-5 text-sm font-bold">
       {links.map((l) => {
         const active = l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
         return (
-          <Link
-            key={l.href}
-            href={l.href}
-            aria-current={active ? "page" : undefined}
-            className={active ? "text-ink" : "text-ink-dim transition hover:text-ink-muted"}
-          >
+          <Link key={l.href} href={l.href} className={active ? "text-ink" : "text-ink-dim transition hover:text-ink-muted"}>
             {l.label}
           </Link>
         );

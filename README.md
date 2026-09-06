@@ -5,6 +5,10 @@ A small, self-hosted board that shows what your team has contributed to open sou
 [![CI](https://github.com/Chy-Zaber-Bin-Zahid/open-source-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/Chy-Zaber-Bin-Zahid/open-source-tracker/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+![The board, all time](docs/screenshots/board.png)
+
+<p align="center"><em>The board in real use — four teammates, 38 merged pull requests across grafana/k6, microsoft/playwright, SeleniumHQ/selenium and laravel/framework.</em></p>
+
 **Stack:** Next.js 16 (App Router, route handlers as the backend) · React 19 · Tailwind CSS 4 · PostgreSQL 16 · Docker Compose. No ORM, no auth layer, no external services beyond the GitHub API.
 
 ---
@@ -25,6 +29,22 @@ There are no points, no medals and no streak hype anywhere in the interface. It 
 Each pull request is a single entry: it appears as pending while open, becomes a merged PR when it merges, and disappears if it is closed without merging.
 
 Contributions to repositories a member owns themselves are ignored by default, so nobody's own side projects inflate the board. Set `INCLUDE_OWN_REPOS=true` to count them.
+
+---
+
+## Screens
+
+### Per-member pages
+
+Every merged pull request a person has landed, which repositories they land in most, and the issues they have filed.
+
+![A member page](docs/screenshots/member.png)
+
+### Adding teammates
+
+Add someone by GitHub username. Their public pull requests, reviews and issues are pulled in on the next sync.
+
+![The members page](docs/screenshots/members.png)
 
 ---
 

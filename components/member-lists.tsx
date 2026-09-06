@@ -10,15 +10,16 @@ function formatDate(value: string) {
   return new Date(value).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
-/** Full repo name as a small badge that links to the repo on GitHub. */
-export function RepoBadge({ repo }: { repo: string }) {
+/** Full repo name as a small badge that links to the repo on GitHub. Shrinks and
+ * truncates inside flex rows instead of overflowing them. */
+export function RepoBadge({ repo, className = "" }: { repo: string; className?: string }) {
   return (
     <a
       href={`https://github.com/${repo}`}
       target="_blank"
       rel="noreferrer"
       onClick={(e) => e.stopPropagation()}
-      className="num inline-flex max-w-full shrink-0 items-center gap-1 rounded-full border border-line bg-surface-2 px-2 py-0.5 text-xs text-ink-muted transition hover:border-lime hover:text-lime"
+      className={`num inline-flex min-w-0 max-w-full items-center rounded-full border border-line bg-surface-2 px-2 py-0.5 text-xs text-ink-muted transition hover:border-lime hover:text-lime ${className}`}
     >
       <span className="truncate">{repo}</span>
     </a>
@@ -76,18 +77,16 @@ export function PagedList({
           >
             {icon}
           </span>
-          <div className={`flex min-w-0 flex-1 flex-col gap-1 ${badgeRepo ? "" : "gap-0"}`}>
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <p className={`truncate font-bold group-hover:text-lime ${dense ? "text-[13px]" : "text-sm"}`}>{it.title}</p>
-            <div className="flex min-w-0 items-center gap-2">
-              {badgeRepo ? (
+            {badgeRepo ? (
+              <div className="flex min-w-0 items-center gap-2">
                 <RepoBadge repo={it.repo} />
-              ) : (
-                <span className={`num truncate text-ink-dim ${dense ? "text-xs" : "text-xs"}`}>
-                  {it.repo} · #{it.url.split("/").pop()}
-                </span>
-              )}
-              {badgeRepo && <span className="num shrink-0 text-xs text-ink-dim">#{it.url.split("/").pop()}</span>}
-            </div>
+                <span className="num shrink-0 text-xs text-ink-dim">#{it.url.split("/").pop()}</span>
+              </div>
+            ) : (
+              <span className="num truncate text-xs text-ink-dim">{it.repo} · #{it.url.split("/").pop()}</span>
+            )}
           </div>
           <span className={`num hidden shrink-0 text-xs text-ink-dim sm:inline ${dense ? "text-[11px]" : ""}`}>{formatDate(it.occurred_at)}</span>
           <ExternalIcon className="shrink-0 text-ink-dim opacity-0 transition group-hover:opacity-100" />
@@ -147,7 +146,9 @@ export function RepoList({ repos }: { repos: { repo: string; merged: number }[] 
     <div className="mt-3 flex flex-col gap-2.5">
       {shown.map((r) => (
         <div key={r.repo} className="flex items-center gap-3">
-          <RepoBadge repo={r.repo} />
+          <span className="flex min-w-0 flex-1">
+            <RepoBadge repo={r.repo} />
+          </span>
           <div className="h-2 w-24 shrink-0 overflow-hidden rounded-full bg-surface-2">
             <div className="h-full rounded-full bg-lime" style={{ width: `${Math.round((r.merged / max) * 100)}%` }} />
           </div>

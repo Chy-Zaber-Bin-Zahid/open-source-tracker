@@ -1,0 +1,42 @@
+name: Bug report
+description: Something in the tracker behaves incorrectly.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Add member `octocat`
+        2. Press Sync GitHub
+        3. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: how-run
+    attributes:
+      label: How are you running it?
+      options:
+        - Docker Compose
+        - Local dev (npm run dev)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Output from `docker compose logs web` or the dev server. Redact any token.
+      render: shell
+  - type: input
+    id: version
+    attributes:
+      label: Node version
+      placeholder: "v22.11.0"

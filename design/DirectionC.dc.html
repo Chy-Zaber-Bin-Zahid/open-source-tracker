@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; background: #0b0f14; color: #d7e0ea; font-family: Menlo, Consolas, "Courier New", monospace; font-size: 13px; }
+    a { color: #7dd3fc; } a:hover { color: #bae6fd; }
+    .r { display: grid; grid-template-columns: 32px 160px 60px 60px 60px 60px 1fr 70px; gap: 10px; align-items: center; height: 30px; border-bottom: 1px solid #1c2530; }
+    .bar { height: 8px; background: #1c2530; border-radius: 2px; overflow: hidden; }
+    .bar div { height: 100%; background: #38bdf8; }
+    .k { color: #5b6b7c; }
+  </style>
+</helmet>
+<div style="width: 960px; min-height: 720px; padding: 28px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px;">
+  <div style="display: flex; justify-content: space-between;">
+    <span style="color: #38bdf8;">oss-tracker :: standings --period=month</span>
+    <span class="k">Option C · Dense terminal · low-fi</span>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;">
+    <div style="border: 1px solid #1c2530; padding: 12px;"><div class="k">merged_prs</div><div style="font-size: 26px;">96</div></div>
+    <div style="border: 1px solid #1c2530; padding: 12px;"><div class="k">reviews</div><div style="font-size: 26px;">142</div></div>
+    <div style="border: 1px solid #1c2530; padding: 12px;"><div class="k">issues</div><div style="font-size: 26px;">45</div></div>
+    <div style="border: 1px solid #1c2530; padding: 12px;"><div class="k">points</div><div style="font-size: 26px;">1642</div></div>
+  </div>
+  <div style="display: flex; flex-direction: column;">
+    <div class="r k"><span>#</span><span>member</span><span>prs</span><span>rev</span><span>iss</span><span>open</span><span>share</span><span style="text-align: right;">pts</span></div>
+    <div class="r"><span>1</span><span>sabitur</span><span>31</span><span>42</span><span>9</span><span>3</span><div class="bar"><div style="width: 100%;"></div></div><span style="text-align: right;">487</span></div>
+    <div class="r"><span>2</span><span>rafik</span><span>18</span><span>31</span><span>6</span><span>2</span><div class="bar"><div style="width: 64%;"></div></div><span style="text-align: right;">312</span></div>
+    <div class="r"><span>3</span><span>nusrat-a</span><span>15</span><span>22</span><span>11</span><span>4</span><div class="bar"><div style="width: 57%;"></div></div><span style="text-align: right;">276</span></div>
+    <div class="r"><span>4</span><span>tanvirh</span><span>12</span><span>19</span><span>4</span><span>1</span><div class="bar"><div style="width: 43%;"></div></div><span style="text-align: right;">208</span></div>
+    <div class="r"><span>5</span><span>maliha</span><span>9</span><span>14</span><span>7</span><span>0</span><div class="bar"><div style="width: 34%;"></div></div><span style="text-align: right;">167</span></div>
+    <div class="r"><span>6</span><span>jubayer</span><span>7</span><span>8</span><span>5</span><span>2</span><div class="bar"><div style="width: 24%;"></div></div><span style="text-align: right;">117</span></div>
+    <div class="r"><span>7</span><span>arifs</span><span>4</span><span>6</span><span>3</span><span>1</span><div class="bar"><div style="width: 15%;"></div></div><span style="text-align: right;">75</span></div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <span class="k">tail -f activity.log</span>
+    <span>12:04 <span style="color: #38bdf8;">MERGED</span> sabitur vercel/ai#4821 +10</span>
+    <span>11:38 <span class="k">REVIEW</span> rafik date-fns/date-fns#119 +4</span>
+    <span>11:02 <span class="k">ISSUE </span> nusrat-a withastro/astro#2210 +3</span>
+    <span>10:11 <span class="k">OPENED</span> tanvirh tailwindlabs/tailwindcss#77 +2</span>
+  </div>
+  <p style="margin: 0; color: #5b6b7c; max-width: 640px; line-height: 1.5;">Motivation: maximum data per pixel, developers feel at home. Tradeoff: reads as a tool, not a competition; hard to show off on the office TV.</p>
+</div>
+</x-dc>
+</body>
+</html>

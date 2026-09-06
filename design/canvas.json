@@ -1,0 +1,11 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1440, "h": 1080, "title": "Arena scoreboard (main direction)" },
+    { "file": "DirectionB.dc.html", "x": 1540, "y": 0, "w": 960, "h": 720, "title": "Option B · Light editorial" },
+    { "file": "DirectionC.dc.html", "x": 1540, "y": 860, "w": 960, "h": 720, "title": "Option C · Dense terminal" }
+  ],
+  "annotations": [
+    { "id": "brief", "x": 0, "y": -170, "w": 520, "text": "Contribution Tracker · team open-source contribution tracker.\nMain = the direction being built in Next.js + Tailwind. B and C are low-fi alternates if you want a different feel.\nPoints: merged PR 10 · review 4 · issue 3 · open PR 2 (tweakable in the app)." }
+  ],
+  "launch": { "view": "canvas" }
+}

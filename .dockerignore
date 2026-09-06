@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.github
+.env
+.env.local
+design
+scratch
+*.md
+*.tsbuildinfo
+Dockerfile
+docker-compose.yml

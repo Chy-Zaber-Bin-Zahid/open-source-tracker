@@ -1,0 +1,48 @@
+name: contribution-tracker
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: arena
+      POSTGRES_PASSWORD: arena
+      POSTGRES_DB: arena
+    ports:
+      - "${DB_PORT:-5439}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arena -d arena"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://arena:arena@db:5432/arena
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      SYNC_SINCE: ${SYNC_SINCE:-}
+      INCLUDE_OWN_REPOS: ${INCLUDE_OWN_REPOS:-false}
+      TZ: ${TZ:-UTC}
+    ports:
+      - "3000:3000"
+
+  # Pulls fresh contributions from GitHub every 15 minutes.
+  sync:
+    image: alpine:3.20
+    restart: unless-stopped
+    depends_on:
+      - web
+    command: >
+      sh -c "sleep 20; while true; do
+        wget -qO- --post-data='' http://web:3000/api/sync > /dev/null 2>&1 || echo 'sync failed';
+        sleep 900;
+      done"
+
+volumes:
+  pgdata:

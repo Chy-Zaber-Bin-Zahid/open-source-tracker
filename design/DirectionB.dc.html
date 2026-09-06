@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; background: #f6f3ec; color: #1d1b17; font-family: Georgia, "Times New Roman", serif; }
+    a { color: #1d1b17; } a:hover { color: #7a5c2e; }
+    .wf { border: 1.5px dashed #b9b3a6; border-radius: 6px; }
+    .lbl { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a8377; }
+    .r { display: grid; grid-template-columns: 40px 1fr 80px 80px 100px; gap: 12px; align-items: center; height: 52px; border-bottom: 1px solid #d9d3c6; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 14px; }
+  </style>
+</helmet>
+<div style="width: 960px; min-height: 720px; padding: 40px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px;">
+  <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 3px double #1d1b17; padding-bottom: 12px;">
+    <span style="font-size: 26px; font-style: italic;">The Contribution Ledger</span>
+    <span class="lbl">Option B · Light editorial · low-fi</span>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <span class="lbl">Standings · September 2026</span>
+    <h1 style="margin: 0; font-size: 54px; line-height: 1; font-weight: 400; letter-spacing: -0.02em;">Sabitur leads by 175 points.</h1>
+    <p style="margin: 0; font-size: 18px; color: #5c554a; max-width: 620px; line-height: 1.4;">Thirty-one merged pull requests this month, most of them in vercel/ai. Rafi is closing in on reviews.</p>
+  </div>
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 32px;">
+    <div style="display: flex; flex-direction: column;">
+      <div class="r" style="height: 32px;"><span class="lbl">#</span><span class="lbl">Member</span><span class="lbl">Merged</span><span class="lbl">Reviews</span><span class="lbl" style="text-align: right;">Points</span></div>
+      <div class="r"><span>1</span><span>Sabitur Rahman</span><span>31</span><span>42</span><span style="text-align: right; font-weight: 700;">487</span></div>
+      <div class="r"><span>2</span><span>Rafi Karim</span><span>18</span><span>31</span><span style="text-align: right; font-weight: 700;">312</span></div>
+      <div class="r"><span>3</span><span>Nusrat Ahmed</span><span>15</span><span>22</span><span style="text-align: right; font-weight: 700;">276</span></div>
+      <div class="r"><span>4</span><span>Tanvir Hossain</span><span>12</span><span>19</span><span style="text-align: right; font-weight: 700;">208</span></div>
+      <div class="r"><span>5</span><span>Maliha Islam</span><span>9</span><span>14</span><span style="text-align: right; font-weight: 700;">167</span></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <span class="lbl">Recent</span>
+      <div class="wf" style="height: 64px;"></div>
+      <div class="wf" style="height: 64px;"></div>
+      <div class="wf" style="height: 64px;"></div>
+      <div class="wf" style="height: 64px;"></div>
+    </div>
+  </div>
+  <p style="margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; color: #8a8377; max-width: 640px;">Motivation: calm, readable, feels like a team newsletter. Tradeoff: less of a "competition" buzz; the podium and streaks fade into the background.</p>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,46 @@
+{
+  "name": "open-source-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "node scripts/migrate.mjs",
+    "db:seed": "node scripts/seed.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "^1.41.0",
+    "next": "^16.3.4",
+    "pg": "^8.16.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.15.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.4",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.0"
+  },
+  "description": "Self-hosted tracker for your team's open source contributions, ranked by merged pull requests.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Chy-Zaber-Bin-Zahid/open-source-tracker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Chy-Zaber-Bin-Zahid/open-source-tracker/issues"
+  },
+  "homepage": "https://github.com/Chy-Zaber-Bin-Zahid/open-source-tracker#readme",
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}

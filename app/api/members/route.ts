@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: `Could not verify membership in ${org} — try again shortly` }, { status: 502 });
     }
     if (!member) {
-      return NextResponse.json({ error: `@${login} is not a member of the ${org} organization` }, { status: 403 });
+      return NextResponse.json({ error: `@${login} is not a member of the organization @${org}` }, { status: 403 });
     }
   }
   try {

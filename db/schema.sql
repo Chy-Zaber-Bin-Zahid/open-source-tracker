@@ -46,6 +46,10 @@ USING (SELECT lower(github_login) AS key, min(id) AS keep_id FROM members GROUP 
 WHERE lower(m.github_login) = k.key AND m.id <> k.keep_id;
 CREATE UNIQUE INDEX IF NOT EXISTS members_github_login_lower_key ON members (lower(github_login));
 
+-- v5: org membership flag. When REQUIRED_ORG is set, registration verifies membership
+-- and every sync re-checks it, flipping this flag when someone leaves (or rejoins).
+ALTER TABLE members ADD COLUMN IF NOT EXISTS org_member BOOLEAN NOT NULL DEFAULT TRUE;
+
 CREATE TABLE IF NOT EXISTS sync_runs (
   id           SERIAL PRIMARY KEY,
   started_at   TIMESTAMPTZ NOT NULL DEFAULT now(),

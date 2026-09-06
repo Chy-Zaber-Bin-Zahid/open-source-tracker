@@ -28,7 +28,8 @@ services:
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       SYNC_SINCE: ${SYNC_SINCE:-}
       INCLUDE_OWN_REPOS: ${INCLUDE_OWN_REPOS:-false}
-      TZ: ${TZ:-UTC}
+      APP_TZ: ${APP_TZ:-UTC}
+      TZ: ${APP_TZ:-UTC}
     ports:
       - "3000:3000"
 

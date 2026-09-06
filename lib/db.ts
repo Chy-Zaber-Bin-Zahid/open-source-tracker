@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { APP_TZ } from "./tz";
 
 const globalForPg = globalThis as unknown as { pgPool?: Pool };
 
@@ -11,10 +12,11 @@ export const pool =
 
 if (process.env.NODE_ENV !== "production") globalForPg.pgPool = pool;
 
-// Keep Postgres date math (day buckets, streaks) in the same timezone as the app (TZ env, default UTC).
+// Keep Postgres date math (day buckets, streaks) in the same timezone the app
+// computes its own day keys in. APP_TZ is used rather than TZ because Vercel
+// reserves TZ and pins functions to UTC.
 pool.on("connect", (client) => {
-  const tz = process.env.TZ || "UTC";
-  client.query("SET timezone TO $1", [tz]).catch(() => {});
+  client.query("SET timezone TO $1", [APP_TZ]).catch(() => {});
 });
 
 export async function query<T = Record<string, unknown>>(text: string, params: unknown[] = []): Promise<T[]> {

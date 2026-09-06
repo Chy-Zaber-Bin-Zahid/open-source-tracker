@@ -7,6 +7,7 @@ export type Member = {
   id: number;
   github_login: string;
   display_name: string;
+  org_member: boolean;
   created_at: string;
 };
 
@@ -57,7 +58,7 @@ export type SyncRun = {
 };
 
 export async function getMembers(): Promise<Member[]> {
-  return query<Member>(`SELECT id, github_login, display_name, created_at FROM members ORDER BY display_name`);
+  return query<Member>(`SELECT id, github_login, display_name, org_member, created_at FROM members ORDER BY display_name`);
 }
 
 export async function getStandings(period: Period): Promise<Standing[]> {
@@ -168,7 +169,7 @@ export async function getLastSync(): Promise<SyncRun | null> {
 
 export async function getMemberByLogin(login: string): Promise<Member | null> {
   const [row] = await query<Member>(
-    `SELECT id, github_login, display_name, created_at FROM members WHERE lower(github_login) = lower($1)`,
+    `SELECT id, github_login, display_name, org_member, created_at FROM members WHERE lower(github_login) = lower($1)`,
     [login],
   );
   return row ?? null;

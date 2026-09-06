@@ -17,7 +17,7 @@ A small, self-hosted board that shows what your team has contributed to open sou
 - Pulls each member's public GitHub activity through the search API and stores it in Postgres.
 - Orders members by **merged pull requests** for this week, this month, or all time.
 - Shows a feed of recent contributions, per-member pages, and team totals.
-- Re-syncs every 15 minutes on its own, or on demand from the header.
+- Re-syncs every two hours on its own, or on demand from the header.
 
 ### It is a tracker, not a competition
 
@@ -159,7 +159,7 @@ Two tables and a log: `members`, `contributions`, `sync_runs`. There is no ORM a
 
 ## Deploying
 
-The `Dockerfile` produces a standalone Next.js image and runs migrations on start. `docker-compose.yml` wires it to Postgres and a small sync container that pings `/api/sync` every 15 minutes.
+The `Dockerfile` produces a standalone Next.js image and runs migrations on start. `docker-compose.yml` wires it to Postgres and a small sync container that pings `/api/sync` every two hours.
 
 **Before you expose this anywhere:** the app has no authentication. Anyone who can reach it can add or remove members and trigger syncs. Run it on an internal network, or put an authenticating proxy in front of it. Also change the default `arena` / `arena` Postgres credentials. See [SECURITY.md](SECURITY.md).
 

@@ -17,7 +17,7 @@ A small, self-hosted board that shows what your team has contributed to open sou
 - Pulls each member's public GitHub activity through the search API and stores it in Postgres.
 - Orders members by **merged pull requests** for this week, this month, or all time.
 - Shows a feed of recent contributions, per-member pages, and team totals.
-- Re-syncs every 15 minutes on its own, or on demand from the header.
+- Re-syncs every two hours on its own, or on demand from the header.
 
 ### It is a tracker, not a competition
 
@@ -95,7 +95,7 @@ All settings live in `.env`. Copy `.env.example` to start.
 | `GITHUB_TOKEN` | *(empty)* | GitHub personal access token. Strongly recommended — see below. |
 | `SYNC_SINCE` | `2000-01-01` | Only pull contributions on or after this ISO date. |
 | `INCLUDE_OWN_REPOS` | `false` | Set `true` to also count activity on repos the member owns. |
-| `REQUIRED_ORG` | *(empty)* | GitHub org new members must belong to. Syncs re-check it and flag departures. Empty allows anyone. |
+| `REQUIRED_ORG` | *(empty)* | GitHub orgs (can be single, or multiple comma-separated) new members must belong to — any one is enough. Syncs re-check and flag departures. Empty allows anyone. |
 | `DB_PORT` | `5439` | Host port Postgres is published on. 5432 is often already taken. |
 | `APP_TZ` | `UTC` | IANA timezone that defines "this week" and "this month" boundaries, e.g. `Asia/Dhaka`. **Not** `TZ` — Vercel reserves that name. |
 
@@ -159,7 +159,7 @@ Two tables and a log: `members`, `contributions`, `sync_runs`. There is no ORM a
 
 ## Deploying
 
-The `Dockerfile` produces a standalone Next.js image and runs migrations on start. `docker-compose.yml` wires it to Postgres and a small sync container that pings `/api/sync` every 15 minutes.
+The `Dockerfile` produces a standalone Next.js image and runs migrations on start. `docker-compose.yml` wires it to Postgres and a small sync container that pings `/api/sync` every two hours.
 
 ### Migrations
 

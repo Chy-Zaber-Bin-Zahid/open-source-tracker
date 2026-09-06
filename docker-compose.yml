@@ -34,7 +34,7 @@ services:
     ports:
       - "3000:3000"
 
-  # Pulls fresh contributions from GitHub every 15 minutes.
+  # Pulls fresh contributions from GitHub every two hours.
   sync:
     image: alpine:3.20
     restart: unless-stopped
@@ -43,7 +43,7 @@ services:
     command: >
       sh -c "sleep 20; while true; do
         wget -qO- --post-data='' http://web:3000/api/sync > /dev/null 2>&1 || echo 'sync failed';
-        sleep 900;
+        sleep 7200;
       done"
 
 volumes:

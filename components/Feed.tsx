@@ -1,11 +1,13 @@
 import Link from "next/link";
 import type { FeedItem } from "@/lib/queries";
-import { IssueIcon, MergeIcon, PendingIcon, ReviewIcon } from "./icons";
+import { ClosedIcon, IssueIcon, MergeIcon, PendingIcon, ReviewIcon } from "./icons";
+import { RepoBadge } from "./member-lists";
 import { TYPE_VERB } from "@/lib/points";
 import { timeAgo } from "@/lib/format";
 
 const iconFor = {
   pr_merged: (c: string) => <MergeIcon className={c} />,
+  pr_closed: (c: string) => <ClosedIcon className={c} />,
   pr_opened: (c: string) => <PendingIcon className={c} />,
   review: (c: string) => <ReviewIcon className={c} />,
   issue: (c: string) => <IssueIcon className={c} />,
@@ -28,12 +30,13 @@ export function FeedList({ items, compact = false }: { items: FeedItem[]; compac
               <a href={it.url} target="_blank" rel="noreferrer" className="text-lime hover:text-lime-soft">
                 {it.title}
               </a>{" "}
-              <span className="text-ink-muted">in {it.repo}</span>
+              <RepoBadge repo={it.repo} />
             </p>
             <p className="mt-0.5 text-xs text-ink-dim">
               {timeAgo(it.occurred_at)}
               {it.type === "pr_merged" && <span className="font-bold text-lime"> · counts</span>}
               {it.type === "pr_opened" && <span> · counts once merged</span>}
+              {it.type === "pr_closed" && <span> · never counted</span>}
               {it.source !== "github" && <span> · {it.source}</span>}
             </p>
           </div>

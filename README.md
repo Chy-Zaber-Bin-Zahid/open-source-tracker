@@ -2,7 +2,6 @@
 
 A small, self-hosted board that shows what your team has contributed to open source. Add teammates by GitHub username, sync, and see everyone's merged pull requests — with pending PRs, issues and reviews shown alongside for context.
 
-[![CI](https://github.com/Chy-Zaber-Bin-Zahid/open-source-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/Chy-Zaber-Bin-Zahid/open-source-tracker/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ![The board, all time](docs/screenshots/board.png)

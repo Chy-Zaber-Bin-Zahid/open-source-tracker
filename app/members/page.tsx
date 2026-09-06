@@ -14,7 +14,7 @@ export default async function MembersPage() {
           Add a teammate by GitHub username. Their public pull requests, reviews and issues get pulled in on the next sync.
         </p>
       </div>
-      <MembersManager initial={members} />
+      <MembersManager initial={members} orgName={process.env.REQUIRED_ORG?.trim() || null} />
     </div>
   );
 }

@@ -7,7 +7,7 @@ import type { Member } from "@/lib/queries";
 import { Avatar } from "./Avatar";
 import { TrashIcon } from "./icons";
 
-export function MembersManager({ initial }: { initial: Member[] }) {
+export function MembersManager({ initial, orgName = null }: { initial: Member[]; orgName?: string | null }) {
   const router = useRouter();
   const [members, setMembers] = useState(initial);
   const [login, setLogin] = useState("");
@@ -41,10 +41,14 @@ export function MembersManager({ initial }: { initial: Member[] }) {
   async function remove(member: Member) {
     if (!confirm(`Remove ${member.display_name} and all their logged contributions?`)) return;
     const res = await fetch(`/api/members/${member.id}`, { method: "DELETE" });
-    if (res.ok) {
-      setMembers((m) => m.filter((x) => x.id !== member.id));
-      router.refresh();
+    if (!res.ok) {
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      setError(data?.error ?? "Could not remove member");
+      return;
     }
+    setMembers((m) => m.filter((x) => x.id !== member.id));
+    setError(null);
+    router.refresh();
   }
 
   const input = "h-11 w-full rounded-[10px] border border-line bg-bg px-3.5 text-sm text-ink outline-none placeholder:text-ink-dim focus:border-lime";
@@ -73,12 +77,26 @@ export function MembersManager({ initial }: { initial: Member[] }) {
           <div key={m.id} className={`flex items-center gap-3 px-5 py-3.5 ${i > 0 ? "border-t border-line-soft" : ""}`}>
             <Avatar login={m.github_login} name={m.display_name} className="bg-[#24262a] text-ink-muted" />
             <div className="flex min-w-0 flex-1 flex-col">
-              <Link href={`/members/${m.github_login}`} className="truncate font-bold hover:text-lime">{m.display_name}</Link>
+              <span className="flex min-w-0 items-center gap-2">
+                <Link href={`/members/${m.github_login}`} className="truncate font-bold hover:text-lime">{m.display_name}</Link>
+                {orgName && !m.org_member && (
+                  <span className="shrink-0 rounded-full border border-line px-2 py-0.5 text-xs font-bold text-coral" title={`Flagged by the last sync — no longer in ${orgName}`}>
+                    not in {orgName}
+                  </span>
+                )}
+              </span>
               <a href={`https://github.com/${m.github_login}`} target="_blank" rel="noreferrer" className="num truncate text-xs text-ink-dim hover:text-lime">
                 @{m.github_login}
               </a>
             </div>
-            <button type="button" onClick={() => remove(m)} aria-label={`Remove ${m.display_name}`} className="flex h-9 w-9 items-center justify-center rounded-[10px] text-ink-dim transition hover:bg-surface-2 hover:text-coral">
+            <button
+              type="button"
+              onClick={() => remove(m)}
+              disabled={Boolean(orgName) && m.org_member}
+              title={orgName && m.org_member ? `Members still in ${orgName} cannot be removed` : `Remove ${m.display_name}`}
+              aria-label={`Remove ${m.display_name}`}
+              className="flex h-9 w-9 items-center justify-center rounded-[10px] text-ink-dim transition hover:bg-surface-2 hover:text-coral disabled:pointer-events-none disabled:opacity-30"
+            >
               <TrashIcon />
             </button>
           </div>

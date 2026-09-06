@@ -28,6 +28,7 @@ services:
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       SYNC_SINCE: ${SYNC_SINCE:-}
       INCLUDE_OWN_REPOS: ${INCLUDE_OWN_REPOS:-false}
+      REQUIRED_ORG: ${REQUIRED_ORG:-}
       APP_TZ: ${APP_TZ:-UTC}
       TZ: ${APP_TZ:-UTC}
     ports:

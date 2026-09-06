@@ -96,13 +96,13 @@ export async function isOrgMember(login: string, orgs = requiredOrgs()): Promise
   return false;
 }
 
-export async function collectForMember(login: string): Promise<{ items: Upsert[]; closedUnmerged: string[] }> {
+export async function collectForMember(login: string): Promise<{ items: Upsert[] }> {
   const since = sinceDate();
   const includeOwn = process.env.INCLUDE_OWN_REPOS === "true";
   const out: Upsert[] = [];
-  const closedUnmerged: string[] = [];
 
-  // One entry per PR: merged -> pr_merged, still open -> pr_opened (pending, 0 pts), closed without merge -> removed.
+  // One entry per PR: merged -> pr_merged, still open -> pr_opened (pending, 0 pts),
+  // closed without merging -> pr_closed (kept for the record, 0 pts).
   const prs = await search(`is:pr author:${login} created:>=${since}`);
   for (const pr of prs) {
     const repo = repoOf(pr);
@@ -112,7 +112,7 @@ export async function collectForMember(login: string): Promise<{ items: Upsert[]
     } else if (pr.state === "open") {
       out.push({ type: "pr_opened", repo, title: pr.title, url: pr.html_url, occurredAt: pr.created_at });
     } else {
-      closedUnmerged.push(pr.html_url);
+      out.push({ type: "pr_closed", repo, title: pr.title, url: pr.html_url, occurredAt: pr.closed_at ?? pr.updated_at });
     }
   }
 
@@ -130,10 +130,10 @@ export async function collectForMember(login: string): Promise<{ items: Upsert[]
     out.push({ type: "review", repo, title: pr.title, url: pr.html_url, occurredAt: pr.updated_at });
   }
 
-  return { items: out, closedUnmerged };
+  return { items: out };
 }
 
-export type SyncResult = { inserted: number; updated: number; removed: number; perMember: Record<string, number>; errors: string[] };
+export type SyncResult = { inserted: number; updated: number; perMember: Record<string, number>; errors: string[] };
 
 const syncState = globalThis as unknown as { syncInFlight?: Promise<SyncResult> };
 
@@ -159,7 +159,6 @@ async function runSync(): Promise<SyncResult> {
   const errors: string[] = [];
   let inserted = 0;
   let updated = 0;
-  let removed = 0;
 
   for (const member of members) {
     try {
@@ -173,14 +172,14 @@ async function runSync(): Promise<SyncResult> {
           errors.push(`${member.github_login}: org membership check failed: ${err instanceof Error ? err.message : String(err)}`);
         }
       }
-      const { items, closedUnmerged } = await collectForMember(member.github_login);
+      const { items } = await collectForMember(member.github_login);
       let count = 0;
       const client = await pool.connect();
       try {
         for (const it of items) {
-          const isPr = it.type === "pr_merged" || it.type === "pr_opened";
+          const isPr = it.type === "pr_merged" || it.type === "pr_closed" || it.type === "pr_opened";
           const conflict = isPr
-            ? `ON CONFLICT (member_id, url) WHERE type IN ('pr_merged', 'pr_opened') DO UPDATE
+            ? `ON CONFLICT (member_id, url) WHERE type IN ('pr_merged', 'pr_closed', 'pr_opened') DO UPDATE
                  SET type = EXCLUDED.type, points = EXCLUDED.points, occurred_at = EXCLUDED.occurred_at, title = EXCLUDED.title
                  WHERE contributions.type IS DISTINCT FROM EXCLUDED.type`
             : `ON CONFLICT (member_id, url, type) DO NOTHING`;
@@ -195,13 +194,6 @@ async function runSync(): Promise<SyncResult> {
             if (row.inserted) { inserted++; count++; } else updated++;
           }
         }
-        if (closedUnmerged.length) {
-          const del = await client.query(
-            `DELETE FROM contributions WHERE member_id = $1 AND type = 'pr_opened' AND url = ANY($2::text[])`,
-            [member.id, closedUnmerged],
-          );
-          removed += del.rowCount ?? 0;
-        }
       } finally {
         client.release();
       }
@@ -215,5 +207,5 @@ async function runSync(): Promise<SyncResult> {
     `UPDATE sync_runs SET finished_at = now(), status = $2, inserted = $3, message = $4 WHERE id = $1`,
     [run.id, errors.length ? "partial" : "ok", inserted, errors.length ? errors.join("\n") : null],
   );
-  return { inserted, updated, removed, perMember, errors };
+  return { inserted, updated, perMember, errors };
 }

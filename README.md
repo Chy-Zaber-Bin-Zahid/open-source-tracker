@@ -95,6 +95,7 @@ All settings live in `.env`. Copy `.env.example` to start.
 | `GITHUB_TOKEN` | *(empty)* | GitHub personal access token. Strongly recommended — see below. |
 | `SYNC_SINCE` | Jan 1 of the current year | Only pull contributions on or after this ISO date. |
 | `INCLUDE_OWN_REPOS` | `false` | Set `true` to also count activity on repos the member owns. |
+| `REQUIRED_ORG` | *(empty)* | GitHub org new members must belong to. Syncs re-check it and flag departures. Empty allows anyone. |
 | `DB_PORT` | `5439` | Host port Postgres is published on. 5432 is often already taken. |
 | `APP_TZ` | `UTC` | IANA timezone that defines "this week" and "this month" boundaries, e.g. `Asia/Dhaka`. **Not** `TZ` — Vercel reserves that name. |
 

@@ -161,6 +161,29 @@ Two tables and a log: `members`, `contributions`, `sync_runs`. There is no ORM a
 
 The `Dockerfile` produces a standalone Next.js image and runs migrations on start. `docker-compose.yml` wires it to Postgres and a small sync container that pings `/api/sync` every 15 minutes.
 
+### Migrations
+
+There is no migration tool. `db/schema.sql` is written to be idempotent and reapplying it in full *is* the migration, so both deploy paths run it automatically:
+
+| Where | When it runs | How |
+| --- | --- | --- |
+| Docker | Every container start, before the server boots | `CMD` runs `scripts/migrate.mjs` |
+| Vercel | Every deploy, before `next build` | the `vercel-build` script |
+
+Vercel runs `vercel-build` in preference to `build` when it exists, which is why the migration lives there and not in `build` — the Docker image is built without a database, so a migration in `build` would break `docker build`.
+
+The whole schema is applied in one transaction guarded by a transaction-scoped advisory lock, so two deploys landing at once cannot half-apply it or collide on `CREATE TABLE IF NOT EXISTS` (which is not itself race-safe). The lock is transaction-scoped rather than session-scoped so that it still works through a transaction pooler such as PgBouncer or Neon's `-pooler` endpoint.
+
+**This means `db/schema.sql` must stay transactional and additive.** No `CREATE INDEX CONCURRENTLY`, no `VACUUM`, and every statement guarded with `IF NOT EXISTS` / `IF EXISTS`. Preview deployments run against whatever `DATABASE_URL` they are given, so if previews share the production database, a destructive change would reach it before the code does.
+
+To migrate by hand — a one-off fix, or a database the deploy cannot reach:
+
+```bash
+DATABASE_URL='postgres://...' npm run db:migrate
+```
+
+Use your database's **direct** endpoint for that, not a pooled one.
+
 **Before you expose this anywhere:** the app has no authentication. Anyone who can reach it can add or remove members and trigger syncs. Run it on an internal network, or put an authenticating proxy in front of it. Also change the default `arena` / `arena` Postgres credentials. See [SECURITY.md](SECURITY.md).
 
 ---

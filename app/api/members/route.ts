@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { isOrgMember, requiredOrg } from "@/lib/github";
+import { isOrgMember, requiredOrgs } from "@/lib/github";
 import { getMembers } from "@/lib/queries";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 
@@ -22,16 +22,17 @@ export async function POST(req: Request) {
   if (!login || !/^[a-zA-Z0-9-]{1,39}$/.test(login)) {
     return NextResponse.json({ error: "A valid GitHub username is required" }, { status: 400 });
   }
-  const org = requiredOrg();
-  if (org) {
+  const orgs = requiredOrgs();
+  if (orgs.length > 0) {
     let member: boolean;
     try {
-      member = await isOrgMember(login, org);
+      member = await isOrgMember(login, orgs);
     } catch {
-      return NextResponse.json({ error: `Could not verify membership in ${org} — try again shortly` }, { status: 502 });
+      return NextResponse.json({ error: `Could not verify membership in ${orgs.join(", ")} — try again shortly` }, { status: 502 });
     }
     if (!member) {
-      return NextResponse.json({ error: `@${login} is not a member of the organization @${org}` }, { status: 403 });
+      const label = orgs.length === 1 ? `the organization @${orgs[0]}` : orgs.map((org) => `@${org}`).join(" or ");
+      return NextResponse.json({ error: `@${login} is not a member of ${label}` }, { status: 403 });
     }
   }
   try {

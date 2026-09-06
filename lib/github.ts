@@ -67,26 +67,33 @@ function ownRepo(repo: string, login: string): boolean {
   return repo.split("/")[0].toLowerCase() === login.toLowerCase();
 }
 
-/** Organization that members must belong to when REQUIRED_ORG is set; null disables the guard. */
-export function requiredOrg(): string | null {
-  const org = process.env.REQUIRED_ORG?.trim();
-  return org || null;
+/** Organizations members must belong to when REQUIRED_ORG is set (comma-separated);
+ * an empty list disables the guard. */
+export function requiredOrgs(): string[] {
+  return (process.env.REQUIRED_ORG ?? "")
+    .split(",")
+    .map((org) => org.trim())
+    .filter(Boolean);
 }
 
 /**
- * Checks public org membership: 204 = member, 404 = not a member. Anything else
- * (rate limit, GitHub hiccup) throws so a transient failure is never mistaken
- * for "left the org".
+ * Checks public org membership: 204 = member, 404 = not a member. With several orgs
+ * the user only has to belong to one of them. Anything else (rate limit, GitHub hiccup)
+ * throws so a transient failure is never mistaken for "left the org".
  */
-export async function isOrgMember(login: string, org = requiredOrg()): Promise<boolean> {
-  if (!org) return true;
-  const res = await fetch(`${API}/orgs/${org}/members/${encodeURIComponent(login)}`, {
-    headers: headers(),
-    cache: "no-store",
-  });
-  if (res.status === 204) return true;
-  if (res.status === 404) return false;
-  throw new Error(`GitHub membership check failed (${res.status}): ${await res.text()}`);
+export async function isOrgMember(login: string, orgs = requiredOrgs()): Promise<boolean> {
+  if (orgs.length === 0) return true;
+  for (const org of orgs) {
+    const res = await fetch(`${API}/orgs/${org}/members/${encodeURIComponent(login)}`, {
+      headers: headers(),
+      cache: "no-store",
+    });
+    if (res.status === 204) return true;
+    if (res.status !== 404) {
+      throw new Error(`GitHub membership check failed for ${org} (${res.status}): ${await res.text()}`);
+    }
+  }
+  return false;
 }
 
 export async function collectForMember(login: string): Promise<{ items: Upsert[]; closedUnmerged: string[] }> {
@@ -147,7 +154,7 @@ async function runSync(): Promise<SyncResult> {
   const members = await query<{ id: number; github_login: string; org_member: boolean }>(
     `SELECT id, github_login, org_member FROM members`,
   );
-  const org = requiredOrg();
+  const orgs = requiredOrgs();
   const perMember: Record<string, number> = {};
   const errors: string[] = [];
   let inserted = 0;
@@ -156,9 +163,9 @@ async function runSync(): Promise<SyncResult> {
 
   for (const member of members) {
     try {
-      if (org) {
+      if (orgs.length > 0) {
         try {
-          const inOrg = await isOrgMember(member.github_login, org);
+          const inOrg = await isOrgMember(member.github_login, orgs);
           if (inOrg !== member.org_member) {
             await query(`UPDATE members SET org_member = $1 WHERE id = $2`, [inOrg, member.id]);
           }

@@ -77,14 +77,7 @@ export function MembersManager({ initial, orgName = null }: { initial: Member[];
           <div key={m.id} className={`flex items-center gap-3 px-5 py-3.5 ${i > 0 ? "border-t border-line-soft" : ""}`}>
             <Avatar login={m.github_login} name={m.display_name} className="bg-[#24262a] text-ink-muted" />
             <div className="flex min-w-0 flex-1 flex-col">
-              <span className="flex min-w-0 items-center gap-2">
-                <Link href={`/members/${m.github_login}`} className="truncate font-bold hover:text-lime">{m.display_name}</Link>
-                {orgName && !m.org_member && (
-                  <span className="shrink-0 rounded-full border border-line px-2 py-0.5 text-xs font-bold text-coral" title={`Flagged by the last sync — no longer in ${orgName}`}>
-                    not in {orgName}
-                  </span>
-                )}
-              </span>
+              <Link href={`/members/${m.github_login}`} className="truncate font-bold hover:text-lime">{m.display_name}</Link>
               <a href={`https://github.com/${m.github_login}`} target="_blank" rel="noreferrer" className="num truncate text-xs text-ink-dim hover:text-lime">
                 @{m.github_login}
               </a>

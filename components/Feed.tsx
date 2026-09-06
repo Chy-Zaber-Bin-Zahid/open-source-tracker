@@ -29,10 +29,12 @@ export function FeedList({ items, compact = false }: { items: FeedItem[]; compac
               <Link href={`/members/${it.github_login}`} className="font-bold hover:text-lime">{compact ? it.display_name.split(" ")[0] : it.display_name}</Link> {TYPE_VERB[it.type]}{" "}
               <a href={it.url} target="_blank" rel="noreferrer" className="text-lime hover:text-lime-soft">
                 {it.title}
-              </a>{" "}
-              <RepoBadge repo={it.repo} />
+              </a>
             </p>
-            <p className="mt-0.5 text-xs text-ink-dim">
+            <div className="mt-1.5">
+              <RepoBadge repo={it.repo} />
+            </div>
+            <p className="mt-1 text-xs text-ink-dim">
               {timeAgo(it.occurred_at)}
               {it.type === "pr_merged" && <span className="font-bold text-lime"> · counts</span>}
               {it.type === "pr_opened" && <span> · counts once merged</span>}

@@ -26,7 +26,7 @@ const API = "https://api.github.com";
 function sinceDate(): string {
   const env = process.env.SYNC_SINCE;
   if (env && /^\d{4}-\d{2}-\d{2}/.test(env)) return env.slice(0, 10);
-  return `${new Date().getFullYear()}-01-01`;
+  return "2000-01-01";
 }
 
 function headers(): HeadersInit {

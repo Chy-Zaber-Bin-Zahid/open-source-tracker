@@ -41,7 +41,9 @@ npm run typecheck
 npm run build
 ```
 
-CI runs the same checks, plus it applies `db/schema.sql` twice to make sure migrations stay idempotent, and builds the Docker image.
+Please run them — **automated CI is paused right now**, so your local run is the only check there is.
+
+The workflow in `.github/workflows/ci.yml` runs these same three checks, plus it applies `db/schema.sql` twice to make sure migrations stay idempotent and builds the Docker image. It is currently set to `workflow_dispatch` (manual only) because the maintainer's GitHub account is billing-locked and Actions refuses to start any job. It will be switched back to running on every pull request once that is resolved.
 
 ## Design principles
 

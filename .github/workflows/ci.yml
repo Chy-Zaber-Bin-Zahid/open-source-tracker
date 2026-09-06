@@ -1,10 +1,20 @@
 name: CI
 
+# PAUSED. This workflow is sound and has been verified locally, but the
+# GitHub account is currently billing-locked, so Actions refuses to start
+# any job (0 steps executed, 0 ms billable). Rather than paint the repo red
+# for a reason unrelated to the code, it only runs when triggered by hand.
+#
+# TO RE-ENABLE once billing is sorted, replace `workflow_dispatch` below with:
+#
+#   push:
+#     branches: [main]
+#   pull_request:
+#     branches: [main]
+#
+# and restore the CI badge at the top of README.md.
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}

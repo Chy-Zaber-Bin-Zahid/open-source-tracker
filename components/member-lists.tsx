@@ -65,11 +65,8 @@ export function PagedList({
   return (
     <div className="flex flex-col">
       {shown.map((it, i) => (
-        <a
+        <div
           key={it.id}
-          href={it.url}
-          target="_blank"
-          rel="noreferrer"
           className={`group flex items-center gap-3.5 px-5 transition hover:bg-surface-2 ${dense ? "py-2.5" : "py-3.5"} ${i > 0 ? "border-t border-line-soft" : ""}`}
         >
           <span
@@ -78,19 +75,28 @@ export function PagedList({
             {icon}
           </span>
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <p className={`truncate font-bold group-hover:text-lime ${dense ? "text-[13px]" : "text-sm"}`}>{it.title}</p>
+            <a
+              href={it.url}
+              target="_blank"
+              rel="noreferrer"
+              className={`truncate font-bold hover:text-lime ${dense ? "text-[13px]" : "text-sm"}`}
+            >
+              {it.title}
+            </a>
             {badgeRepo ? (
               <div className="flex min-w-0 items-center gap-2">
                 <RepoBadge repo={it.repo} />
                 <span className="num shrink-0 text-xs text-ink-dim">#{it.url.split("/").pop()}</span>
               </div>
             ) : (
-              <span className="num truncate text-xs text-ink-dim">{it.repo} · #{it.url.split("/").pop()}</span>
+              <a href={it.url} target="_blank" rel="noreferrer" className="num truncate text-xs text-ink-dim hover:text-lime">
+                {it.repo} · #{it.url.split("/").pop()}
+              </a>
             )}
           </div>
           <span className={`num hidden shrink-0 text-xs text-ink-dim sm:inline ${dense ? "text-[11px]" : ""}`}>{formatDate(it.occurred_at)}</span>
           <ExternalIcon className="shrink-0 text-ink-dim opacity-0 transition group-hover:opacity-100" />
-        </a>
+        </div>
       ))}
       {count < items.length && <LoadMore hidden={items.length - count} onClick={() => setCount((c) => c + PAGE_SIZE)} />}
     </div>

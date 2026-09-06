@@ -32,6 +32,20 @@ CREATE UNIQUE INDEX IF NOT EXISTS contributions_member_pr_key ON contributions (
 UPDATE contributions SET points = 0 WHERE type IN ('pr_opened', 'review', 'issue') AND points <> 0;
 UPDATE contributions SET points = 10 WHERE type = 'pr_merged' AND points <> 10;
 
+-- v4: one member per GitHub account regardless of login casing (mirror of the API rule).
+-- Case-variant duplicates double-count merged PRs, so move their contributions onto the
+-- earliest-created member, remove the duplicates, then enforce uniqueness case-insensitively.
+INSERT INTO contributions (member_id, type, repo, title, url, points, occurred_at, source, created_at)
+SELECT k.keep_id, c.type, c.repo, c.title, c.url, c.points, c.occurred_at, c.source, c.created_at
+FROM (SELECT lower(github_login) AS key, min(id) AS keep_id FROM members GROUP BY lower(github_login)) k
+JOIN members m ON lower(m.github_login) = k.key AND m.id <> k.keep_id
+JOIN contributions c ON c.member_id = m.id
+ON CONFLICT DO NOTHING;
+DELETE FROM members m
+USING (SELECT lower(github_login) AS key, min(id) AS keep_id FROM members GROUP BY lower(github_login)) k
+WHERE lower(m.github_login) = k.key AND m.id <> k.keep_id;
+CREATE UNIQUE INDEX IF NOT EXISTS members_github_login_lower_key ON members (lower(github_login));
+
 CREATE TABLE IF NOT EXISTS sync_runs (
   id           SERIAL PRIMARY KEY,
   started_at   TIMESTAMPTZ NOT NULL DEFAULT now(),

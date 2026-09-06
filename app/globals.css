@@ -1,27 +1,19 @@
 @import "tailwindcss";
 
-/*
- * Palette. Every color is a plain CSS variable so it can be re-pointed per
- * theme; `@theme inline` makes the Tailwind utilities emit `var(--ink)` rather
- * than baking in a hex, which is what lets one class work in both themes.
- *
- * Contrast: every ink/accent pair below clears WCAG AA (4.5:1) against both
- * --bg and --surface in its own theme. Check before changing one.
- */
-@theme inline {
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-line: var(--line);
-  --color-line-soft: var(--line-soft);
-  --color-ink: var(--ink);
-  --color-ink-muted: var(--ink-muted);
-  --color-ink-dim: var(--ink-dim);
-  --color-lime: var(--accent);
-  --color-lime-soft: var(--accent-soft);
-  --color-coral: var(--danger);
-  --color-avatar: var(--avatar);
-  --color-track: var(--track);
+@theme {
+  --color-bg: #131210;
+  --color-surface: #1a1917;
+  --color-surface-2: #1f1e1a;
+  --color-line: #2b2925;
+  --color-line-soft: #23221f;
+  --color-ink: #f2efe6;
+  --color-ink-muted: #9a958a;
+  --color-ink-dim: #6f6b62;
+  --color-lime: #d4ff3f;
+  --color-lime-soft: #e6ff7a;
+  --color-silver: #c9ccd3;
+  --color-bronze: #d3925c;
+  --color-coral: #e07a5f;
 
   --font-display: var(--font-bricolage), "Avenir Next", "Helvetica Neue", Arial, sans-serif;
   --font-mono: var(--font-jetbrains), Menlo, Consolas, monospace;
@@ -29,63 +21,13 @@
   --radius-card: 20px;
 }
 
-/* Dark is the default look; light is opt-in via system setting or the toggle. */
-:root {
-  --bg: #131210;
-  --surface: #1a1917;
-  --surface-2: #1f1e1a;
-  --line: #2b2925;
-  --line-soft: #23221f;
-  --ink: #f2efe6;
-  --ink-muted: #9a958a;
-  --ink-dim: #87837a;
-  --accent: #d4ff3f;
-  --accent-soft: #e6ff7a;
-  --danger: #e07a5f;
-  --avatar: #24262a;
-  --track: #34342a;
+html {
   color-scheme: dark;
 }
 
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
-    --bg: #f7f5ef;
-    --surface: #ffffff;
-    --surface-2: #f1efe7;
-    --line: #dfdbd0;
-    --line-soft: #e9e6dd;
-    --ink: #1a1917;
-    --ink-muted: #5c584f;
-    --ink-dim: #726d62;
-    --accent: #4f6b00;
-    --accent-soft: #3d5300;
-    --danger: #a3391d;
-    --avatar: #e4e1d7;
-    --track: #e4e1d7;
-    color-scheme: light;
-  }
-}
-
-:root[data-theme="light"] {
-  --bg: #f7f5ef;
-  --surface: #ffffff;
-  --surface-2: #f1efe7;
-  --line: #dfdbd0;
-  --line-soft: #e9e6dd;
-  --ink: #1a1917;
-  --ink-muted: #5c584f;
-  --ink-dim: #726d62;
-  --accent: #4f6b00;
-  --accent-soft: #3d5300;
-  --danger: #a3391d;
-  --avatar: #e4e1d7;
-  --track: #e4e1d7;
-  color-scheme: light;
-}
-
 body {
-  background: var(--bg);
-  color: var(--ink);
+  background: var(--color-bg);
+  color: var(--color-ink);
   font-family: var(--font-display);
   -webkit-font-smoothing: antialiased;
 }
@@ -100,32 +42,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink-dim);
-}
-
-/* One visible focus treatment for every interactive element. Pointer users
-   never see it; keyboard users always do. */
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 6px;
-}
-
-.skip-link {
-  position: absolute;
-  left: 12px;
-  top: -100px;
-  z-index: 50;
-  border-radius: 10px;
-  background: var(--accent);
-  color: var(--bg);
-  padding: 10px 16px;
-  font-size: 13px;
-  font-weight: 800;
-  transition: top 0.15s ease;
-}
-.skip-link:focus {
-  top: 12px;
+  color: var(--color-ink-dim);
 }
 
 @keyframes rise {
@@ -133,34 +50,3 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 .rise { animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-
-@keyframes pulse-soft {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
-}
-.skeleton {
-  background: var(--surface-2);
-  border-radius: 8px;
-  animation: pulse-soft 1.4s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-  .rise { animation: none; opacity: 1; transform: none; }
-}
-
-/* The theme button shows one icon, chosen from the root attribute so it is
-   already right on first paint. */
-.theme-icon { display: none; }
-:root:not([data-theme]) .theme-icon-system,
-:root[data-theme="light"] .theme-icon-light,
-:root[data-theme="dark"] .theme-icon-dark {
-  display: inline-flex;
-}

@@ -17,8 +17,7 @@ A small, self-hosted board that shows what your team has contributed to open sou
 - Pulls each member's public GitHub activity through the search API and stores it in Postgres.
 - Orders members by **merged pull requests** for this week, this month, or all time.
 - Shows a feed of recent contributions, per-member pages, and team totals.
-- Syncs itself **every night at 2:00 AM** in your office timezone, or on demand from the header.
-- Works in light and dark, follows the system theme, and can be switched by hand.
+- Re-syncs every two hours on its own, or on demand from the header.
 
 ### It is a tracker, not a competition
 
@@ -60,7 +59,7 @@ cp .env.example .env      # add a GITHUB_TOKEN here, see below
 docker compose up --build
 ```
 
-Open <http://localhost:3000>, add your teammates on the **Members** page, and press **Sync now**. After that it syncs itself every night at 2:00 AM.
+Open <http://localhost:3000>, add your teammates on the **Members** page, and press **Sync GitHub**.
 
 ## Local development
 
@@ -123,7 +122,6 @@ Route handlers under `app/api` are the entire backend.
 | `POST` | `/api/members` | Add a member by GitHub login |
 | `DELETE` | `/api/members/:id` | Remove a member and all their contributions |
 | `POST` | `/api/sync` | Pull the latest contributions from GitHub for everyone |
-| `GET` | `/api/sync` | Same, for schedulers. Requires `Authorization: Bearer $CRON_SECRET` when that is set |
 
 ---
 
@@ -132,11 +130,7 @@ Route handlers under `app/api` are the entire backend.
 ```
 app/                    Next.js App Router
   page.tsx              The board (week / month / all time)
-  activity/             Full contribution log, paged
   members/              Member list and per-member pages
-  loading.tsx           Skeleton shown while queries run
-  error.tsx             Database-is-down screen
-  not-found.tsx         404
   api/                  Route handlers — the backend
 components/             Presentational React components
 lib/
@@ -146,23 +140,16 @@ lib/
   period.ts             Week / month / all-time window maths
   points.ts             Per-type weights for the DB `points` column
   format.ts             Number and date formatting
-  sync-schedule.ts      The nightly sync hour, shared by the UI and the scheduler
 db/schema.sql           The whole schema, idempotent
 scripts/
   migrate.mjs           Applies db/schema.sql (runs on container start)
   seed.mjs              Demo data
-  scheduler.mjs         Nightly sync loop for self-hosted deployments
 design/                 Design canvas source (main direction + two alternates)
 ```
 
 ### How syncing works
 
-The tracker keeps itself up to date; the **Sync now** button in the header is only there for when you do not want to wait.
-
-- **Docker Compose:** the `sync` service runs `scripts/scheduler.mjs`, which sleeps until `SYNC_HOUR` (default `2`) in `APP_TZ` and then calls the endpoint. Change the hour with `SYNC_HOUR` in `.env`.
-- **Vercel:** `vercel.json` registers a daily cron. Vercel cron expressions are **UTC**, and the checked-in `0 20 * * *` is 02:00 in `Asia/Dhaka`; if your `APP_TZ` differs, change that line to match. Set `CRON_SECRET` in the project's environment variables and Vercel will send it as a bearer token, which the endpoint then requires.
-
-`POST /api/sync` (and `GET`, for schedulers) walks every member and, for each, queries the GitHub search API for their merged PRs, open PRs, issues and reviews since `SYNC_SINCE`. Results are upserted with one row per pull request per member, so a PR that was pending last sync is updated in place when it merges. PRs that were closed without merging are deleted. Each run is recorded in the `sync_runs` table.
+`POST /api/sync` walks every member and, for each, queries the GitHub search API for their merged PRs, open PRs, issues and reviews since `SYNC_SINCE`. Results are upserted with one row per pull request per member, so a PR that was pending last sync is updated in place when it merges. PRs that were closed without merging are deleted. Each run is recorded in the `sync_runs` table.
 
 ### Database
 
@@ -172,7 +159,7 @@ Two tables and a log: `members`, `contributions`, `sync_runs`. There is no ORM a
 
 ## Deploying
 
-The `Dockerfile` produces a standalone Next.js image and runs migrations on start. `docker-compose.yml` wires it to Postgres and a scheduler container that triggers `/api/sync` nightly at 2:00 AM in `APP_TZ`.
+The `Dockerfile` produces a standalone Next.js image and runs migrations on start. `docker-compose.yml` wires it to Postgres and a small sync container that pings `/api/sync` every two hours.
 
 ### Migrations
 

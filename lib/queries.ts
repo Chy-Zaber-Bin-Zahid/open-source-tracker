@@ -23,6 +23,7 @@ export type Standing = {
   week_merged: number;
   rank: number;
   spark: number[]; // merged PRs per day, last 7 days, oldest first
+  streak: number; // consecutive active days ending today or yesterday
 };
 
 export type FeedItem = {
@@ -62,7 +63,7 @@ export async function getMembers(): Promise<Member[]> {
 
 export async function getStandings(period: Period): Promise<Standing[]> {
   const since = periodStart(period);
-  const rows = await query<Omit<Standing, "rank" | "spark">>(
+  const rows = await query<Omit<Standing, "rank" | "spark" | "streak">>(
     `SELECT m.id, m.github_login, m.display_name,
             COALESCE(SUM(c.points), 0)::int AS points,
             COUNT(c.id) FILTER (WHERE c.type = 'pr_merged')::int AS merged,
@@ -94,19 +95,44 @@ export async function getStandings(period: Period): Promise<Standing[]> {
     sparkByMember.set(r.member_id, arr);
   }
 
+  const activeDays = await query<{ member_id: number; day: string }>(
+    `SELECT DISTINCT member_id, to_char(occurred_at::date, 'YYYY-MM-DD') AS day
+     FROM contributions WHERE occurred_at >= now() - interval '120 days'
+     ORDER BY member_id, day DESC`,
+  );
+  const daysByMember = new Map<number, string[]>();
+  for (const r of activeDays) {
+    const arr = daysByMember.get(r.member_id) ?? [];
+    arr.push(r.day);
+    daysByMember.set(r.member_id, arr);
+  }
+
   return rows.map((row, i) => ({
     ...row,
     rank: i + 1,
     spark: sparkByMember.get(row.id) ?? new Array(7).fill(0),
+    streak: computeStreak(daysByMember.get(row.id) ?? []),
   }));
 }
 
-/** Day labels for the sparkline buckets, oldest first, in the office timezone. */
-export function sparkDays(now = new Date()): string[] {
-  const today = zonedParts(now);
-  const out: string[] = [];
-  for (let i = 6; i >= 0; i--) out.push(civilKey(shiftDays(today, -i)));
-  return out;
+function computeStreak(daysDesc: string[]): number {
+  if (daysDesc.length === 0) return 0;
+  const set = new Set(daysDesc);
+  let cursor = zonedParts(new Date());
+  let key = civilKey(cursor);
+  // A streak still counts if nothing has landed yet today.
+  if (!set.has(key)) {
+    cursor = { ...cursor, ...shiftDays(cursor, -1) };
+    key = civilKey(cursor);
+    if (!set.has(key)) return 0;
+  }
+  let streak = 0;
+  while (set.has(key)) {
+    streak++;
+    cursor = { ...cursor, ...shiftDays(cursor, -1) };
+    key = civilKey(cursor);
+  }
+  return streak;
 }
 
 export async function getTeamStats(period: Period, standings: Standing[]): Promise<TeamStats> {
@@ -126,7 +152,7 @@ export async function getTeamStats(period: Period, standings: Standing[]): Promi
 }
 
 export async function getFeed(opts: { limit?: number; memberId?: number; since?: Date | null } = {}): Promise<FeedItem[]> {
-  const limit = Math.min(Math.max(opts.limit ?? 30, 1), 500);
+  const limit = Math.min(Math.max(opts.limit ?? 30, 1), 200);
   return query<FeedItem>(
     `SELECT c.id, c.member_id, m.display_name, m.github_login, c.type, c.repo, c.title, c.url, c.points, c.occurred_at, c.source
      FROM contributions c JOIN members m ON m.id = c.member_id
@@ -134,16 +160,6 @@ export async function getFeed(opts: { limit?: number; memberId?: number; since?:
      ORDER BY c.occurred_at DESC LIMIT $3`,
     [opts.memberId ?? null, opts.since ?? null, limit],
   );
-}
-
-/** Total contributions matching a feed filter, so "show more" knows when to stop. */
-export async function countFeed(opts: { memberId?: number; since?: Date | null } = {}): Promise<number> {
-  const [row] = await query<{ total: number }>(
-    `SELECT COUNT(*)::int AS total FROM contributions c
-     WHERE ($1::int IS NULL OR c.member_id = $1) AND ($2::timestamptz IS NULL OR c.occurred_at >= $2)`,
-    [opts.memberId ?? null, opts.since ?? null],
-  );
-  return row?.total ?? 0;
 }
 
 export async function getLastSync(): Promise<SyncRun | null> {
@@ -168,13 +184,12 @@ export type MemberContributions = {
   repos: { repo: string; merged: number }[];
 };
 
-export async function getMemberContributions(memberId: number, since: Date | null = null): Promise<MemberContributions> {
+export async function getMemberContributions(memberId: number): Promise<MemberContributions> {
   const items = await query<FeedItem>(
     `SELECT c.id, c.member_id, m.display_name, m.github_login, c.type, c.repo, c.title, c.url, c.points, c.occurred_at, c.source
      FROM contributions c JOIN members m ON m.id = c.member_id
-     WHERE c.member_id = $1 AND ($2::timestamptz IS NULL OR c.occurred_at >= $2)
-     ORDER BY c.occurred_at DESC`,
-    [memberId, since],
+     WHERE c.member_id = $1 ORDER BY c.occurred_at DESC`,
+    [memberId],
   );
   const merged = items.filter((i) => i.type === "pr_merged");
   const repoCounts = new Map<string, number>();

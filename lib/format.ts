@@ -1,5 +1,3 @@
-import { APP_TZ } from "./tz";
-
 export function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
@@ -22,22 +20,4 @@ export function timeAgo(input: Date | string): string {
 
 export function formatNumber(n: number): string {
   return new Intl.NumberFormat("en-US").format(n);
-}
-
-/** Absolute timestamp for tooltips and <time> titles, in the office timezone. */
-export function formatExact(input: Date | string): string {
-  const date = typeof input === "string" ? new Date(input) : input;
-  return date.toLocaleString("en-US", {
-    timeZone: APP_TZ,
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
-/** Machine-readable value for the `datetime` attribute. */
-export function isoString(input: Date | string): string {
-  return (typeof input === "string" ? new Date(input) : input).toISOString();
 }

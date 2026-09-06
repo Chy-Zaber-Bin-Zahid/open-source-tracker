@@ -31,26 +31,20 @@ services:
       REQUIRED_ORG: ${REQUIRED_ORG:-}
       APP_TZ: ${APP_TZ:-UTC}
       TZ: ${APP_TZ:-UTC}
-      CRON_SECRET: ${CRON_SECRET:-}
-      SITE_URL: ${SITE_URL:-http://localhost:3000}
     ports:
       - "3000:3000"
 
-  # Nightly sync. Sleeps until 02:00 in APP_TZ, pulls from GitHub, repeats —
-  # so the Sync now button in the header is only ever needed for an early look.
-  # Matches the Vercel cron in vercel.json, so both deploy paths behave alike.
+  # Pulls fresh contributions from GitHub every two hours.
   sync:
-    build: .
+    image: alpine:3.20
     restart: unless-stopped
     depends_on:
       - web
-    environment:
-      SYNC_URL: http://web:3000/api/sync
-      APP_TZ: ${APP_TZ:-UTC}
-      TZ: ${APP_TZ:-UTC}
-      SYNC_HOUR: ${SYNC_HOUR:-2}
-      CRON_SECRET: ${CRON_SECRET:-}
-    command: ["node", "scripts/scheduler.mjs"]
+    command: >
+      sh -c "sleep 20; while true; do
+        wget -qO- --post-data='' http://web:3000/api/sync > /dev/null 2>&1 || echo 'sync failed';
+        sleep 7200;
+      done"
 
 volumes:
   pgdata:

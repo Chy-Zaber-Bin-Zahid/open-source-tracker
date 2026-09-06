@@ -5,7 +5,7 @@ import { initials } from "@/lib/format";
 
 type Props = { login: string; name: string; size?: number; className?: string };
 
-export function Avatar({ login, name, size = 40, className = "bg-avatar text-ink-muted" }: Props) {
+export function Avatar({ login, name, size = 40, className = "" }: Props) {
   const [failed, setFailed] = useState(false);
   const radius = Math.round(size * 0.3);
   return (

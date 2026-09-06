@@ -10,3 +10,4 @@ scratch
 *.tsbuildinfo
 Dockerfile
 docker-compose.yml
+docs

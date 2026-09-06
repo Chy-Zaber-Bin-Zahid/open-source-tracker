@@ -17,6 +17,7 @@ export type Standing = {
   display_name: string;
   points: number;
   merged: number;
+  closed: number;
   reviews: number;
   issues: number;
   opened: number;
@@ -67,6 +68,7 @@ export async function getStandings(period: Period): Promise<Standing[]> {
     `SELECT m.id, m.github_login, m.display_name,
             COALESCE(SUM(c.points), 0)::int AS points,
             COUNT(c.id) FILTER (WHERE c.type = 'pr_merged')::int AS merged,
+            COUNT(c.id) FILTER (WHERE c.type = 'pr_closed')::int AS closed,
             COUNT(c.id) FILTER (WHERE c.type = 'review')::int AS reviews,
             COUNT(c.id) FILTER (WHERE c.type = 'issue')::int AS issues,
             COUNT(c.id) FILTER (WHERE c.type = 'pr_opened')::int AS opened,
@@ -177,6 +179,7 @@ export async function getMemberByLogin(login: string): Promise<Member | null> {
 
 export type MemberContributions = {
   merged: FeedItem[];
+  closed: FeedItem[];
   pending: FeedItem[];
   issues: FeedItem[];
   reviews: FeedItem[];
@@ -196,6 +199,7 @@ export async function getMemberContributions(memberId: number): Promise<MemberCo
   for (const m of merged) repoCounts.set(m.repo, (repoCounts.get(m.repo) ?? 0) + 1);
   return {
     merged,
+    closed: items.filter((i) => i.type === "pr_closed"),
     pending: items.filter((i) => i.type === "pr_opened"),
     issues: items.filter((i) => i.type === "issue"),
     reviews: items.filter((i) => i.type === "review"),

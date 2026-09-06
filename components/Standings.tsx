@@ -5,7 +5,7 @@ import { Sparkline } from "./Sparkline";
 import { ArrowUpIcon } from "./icons";
 import { SCORING_SUMMARY } from "@/lib/points";
 
-const cols = "grid-cols-[32px_minmax(0,1fr)_72px_72px_72px_110px_110px]";
+const cols = "grid-cols-[32px_minmax(0,1fr)_72px_72px_72px_72px_110px_110px]";
 
 export function Standings({ standings }: { standings: Standing[] }) {
   return (
@@ -15,13 +15,14 @@ export function Standings({ standings }: { standings: Standing[] }) {
         <span className="text-[13px] text-ink-dim">{SCORING_SUMMARY}</span>
       </div>
       <div className="overflow-x-auto">
-        <div className="min-w-[720px]">
+        <div className="min-w-[790px]">
           <div className={`grid ${cols} h-10 items-center gap-4 px-5`}>
             <span className="eyebrow">#</span>
             <span className="eyebrow">Member</span>
             <span className="eyebrow">Pending</span>
             <span className="eyebrow">Issues</span>
             <span className="eyebrow">Reviews</span>
+            <span className="eyebrow">Closed</span>
             <span className="eyebrow">Last 7 days</span>
             <span className="eyebrow text-right">Merged</span>
           </div>
@@ -43,6 +44,7 @@ export function Standings({ standings }: { standings: Standing[] }) {
               <span className="num text-ink-muted">{s.opened}</span>
               <span className="num text-ink-muted">{s.issues}</span>
               <span className="num text-ink-muted">{s.reviews}</span>
+              <span className="num text-ink-muted">{s.closed}</span>
               <Sparkline values={s.spark} />
               <div className="flex flex-col items-end">
                 <span className="num text-lg font-bold">{s.merged}</span>

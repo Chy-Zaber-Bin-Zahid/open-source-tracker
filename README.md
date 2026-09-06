@@ -25,7 +25,7 @@ There are no points, no medals and no streak hype anywhere in the interface. It 
 
 **Only merged pull requests affect the ordering.** Pending PRs, issues and reviews are pulled in and displayed for context, but they never move anyone up the board.
 
-Each pull request is a single entry: it appears as pending while open, becomes a merged PR when it merges, and disappears if it is closed without merging.
+Each pull request is a single entry: it appears as pending while open, becomes a merged PR when it merges, and is kept as a closed PR if it is closed without merging — closed PRs never affect the ordering.
 
 Contributions to repositories a member owns themselves are ignored by default, so nobody's own side projects inflate the board. Set `INCLUDE_OWN_REPOS=true` to count them.
 
@@ -149,7 +149,7 @@ design/                 Design canvas source (main direction + two alternates)
 
 ### How syncing works
 
-`POST /api/sync` walks every member and, for each, queries the GitHub search API for their merged PRs, open PRs, issues and reviews since `SYNC_SINCE`. Results are upserted with one row per pull request per member, so a PR that was pending last sync is updated in place when it merges. PRs that were closed without merging are deleted. Each run is recorded in the `sync_runs` table.
+`POST /api/sync` walks every member and, for each, queries the GitHub search API for their merged PRs, open PRs, closed PRs, issues and reviews since `SYNC_SINCE`. Results are upserted with one row per pull request per member, so a PR that was pending last sync is updated in place when it merges or is closed. Each run is recorded in the `sync_runs` table.
 
 ### Database
 

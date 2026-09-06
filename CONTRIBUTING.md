@@ -51,7 +51,7 @@ These are the rules the project is built on. Please don't work against them with
 
 1. **This is a tracker, not a competition.** No points, no medals, no streak hype, no "who shipped the most" copy. It is a plain record of what the team merged.
 2. **Merged pull requests are the only thing that ranks people.** Pending PRs, issues and reviews are pulled in and displayed for context, but they never affect ordering.
-3. **One row per pull request per member.** A PR updates in place as it moves from pending to merged, and is deleted if it is closed without merging.
+3. **One row per pull request per member.** A PR updates in place as it moves from pending to merged, or to closed-unmerged. Closed PRs are kept for the record but never count.
 4. **Everything is verifiable against GitHub.** If a number changes, it should be because GitHub says so.
 
 ## Code conventions

@@ -17,7 +17,7 @@ export function SyncButton() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Sync failed");
         const errs = data.errors?.length ? ` · ${data.errors.length} error(s)` : "";
-        const extra = [data.updated ? `${data.updated} updated` : "", data.removed ? `${data.removed} removed` : ""].filter(Boolean).join(" · ");
+        const extra = [data.updated ? `${data.updated} updated` : ""].filter(Boolean).join(" · ");
         setStatus(`+${data.inserted} new${extra ? ` · ${extra}` : ""}${errs}`);
         router.refresh();
       } catch (err) {

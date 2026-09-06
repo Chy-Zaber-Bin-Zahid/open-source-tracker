@@ -1,6 +1,7 @@
 import { query } from "./db";
 import type { ContributionType } from "./points";
 import { periodStart, previousWindow, type Period } from "./period";
+import { civilKey, shiftDays, zonedParts } from "./tz";
 
 export type Member = {
   id: number;
@@ -82,12 +83,9 @@ export async function getStandings(period: Period): Promise<Standing[]> {
      WHERE type = 'pr_merged' AND occurred_at >= (now()::date - interval '6 days')
      GROUP BY member_id, occurred_at::date`,
   );
+  const today = zonedParts(new Date());
   const days: string[] = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    days.push(d.toISOString().slice(0, 10));
-  }
+  for (let i = 6; i >= 0; i--) days.push(civilKey(shiftDays(today, -i)));
   const sparkByMember = new Map<number, number[]>();
   for (const r of sparkRows) {
     const arr = sparkByMember.get(r.member_id) ?? new Array(7).fill(0);
@@ -119,18 +117,19 @@ export async function getStandings(period: Period): Promise<Standing[]> {
 function computeStreak(daysDesc: string[]): number {
   if (daysDesc.length === 0) return 0;
   const set = new Set(daysDesc);
-  const cursor = new Date();
-  let key = cursor.toISOString().slice(0, 10);
+  let cursor = zonedParts(new Date());
+  let key = civilKey(cursor);
+  // A streak still counts if nothing has landed yet today.
   if (!set.has(key)) {
-    cursor.setDate(cursor.getDate() - 1);
-    key = cursor.toISOString().slice(0, 10);
+    cursor = { ...cursor, ...shiftDays(cursor, -1) };
+    key = civilKey(cursor);
     if (!set.has(key)) return 0;
   }
   let streak = 0;
   while (set.has(key)) {
     streak++;
-    cursor.setDate(cursor.getDate() - 1);
-    key = cursor.toISOString().slice(0, 10);
+    cursor = { ...cursor, ...shiftDays(cursor, -1) };
+    key = civilKey(cursor);
   }
   return streak;
 }

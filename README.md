@@ -96,7 +96,7 @@ All settings live in `.env`. Copy `.env.example` to start.
 | `SYNC_SINCE` | Jan 1 of the current year | Only pull contributions on or after this ISO date. |
 | `INCLUDE_OWN_REPOS` | `false` | Set `true` to also count activity on repos the member owns. |
 | `DB_PORT` | `5439` | Host port Postgres is published on. 5432 is often already taken. |
-| `TZ` | `UTC` | IANA timezone that defines "this week" and "this month" boundaries. |
+| `APP_TZ` | `UTC` | IANA timezone that defines "this week" and "this month" boundaries, e.g. `Asia/Dhaka`. **Not** `TZ` — Vercel reserves that name. |
 
 ### The GitHub token
 

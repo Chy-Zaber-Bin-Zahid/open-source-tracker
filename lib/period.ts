@@ -9,8 +9,11 @@ export const PERIOD_LABEL: Record<Period, string> = {
   all: "All time",
 };
 
-export function parsePeriod(value: unknown): Period {
-  return typeof value === "string" && (PERIODS as readonly string[]).includes(value) ? (value as Period) : "all";
+/** Falls back to the current week: the default view is "what has the team merged lately". */
+export const DEFAULT_PERIOD: Period = "week";
+
+export function parsePeriod(value: unknown, fallback: Period = DEFAULT_PERIOD): Period {
+  return typeof value === "string" && (PERIODS as readonly string[]).includes(value) ? (value as Period) : fallback;
 }
 
 /** Civil date on which the current period began, in the office timezone. */

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TrophyIcon } from "./icons";
+import { MergeIcon } from "./icons";
 import { NavLinks } from "./NavLinks";
 import { SyncButton } from "./SyncButton";
 import { getLastSync } from "@/lib/queries";
@@ -14,7 +14,7 @@ export async function Nav() {
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 sm:gap-x-9">
           <Link href="/" className="flex items-center gap-2.5">
             <span className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-lime text-bg">
-              <TrophyIcon width={18} height={18} strokeWidth={2.4} />
+              <MergeIcon width={17} height={17} strokeWidth={2.5} />
             </span>
             <span className="text-lg font-extrabold tracking-tight">Contribution Tracker</span>
           </Link>

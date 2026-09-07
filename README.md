@@ -6,7 +6,7 @@ A small, self-hosted board that shows what your team has contributed to open sou
 
 ![The board, all time](docs/screenshots/board.png)
 
-<p align="center"><em>The board in real use — four teammates, 38 merged pull requests across grafana/k6, microsoft/playwright, SeleniumHQ/selenium and laravel/framework.</em></p>
+<p align="center"><em>The board in real use — 16 teammates, 164 merged pull requests across 69 repositories, including laravel/framework, Laravel-Backpack/CRUD, bagisto/bagisto, microsoft/playwright, SeleniumHQ/selenium and apache/jmeter.</em></p>
 
 **Stack:** Next.js 16 (App Router, route handlers as the backend) · React 19 · Tailwind CSS 4 · PostgreSQL 16 · Docker Compose. No ORM, no auth layer, no external services beyond the GitHub API.
 
@@ -15,7 +15,7 @@ A small, self-hosted board that shows what your team has contributed to open sou
 ## What it does
 
 - Pulls each member's public GitHub activity through the search API and stores it in Postgres.
-- Orders members by **merged pull requests** for this week, this month, or all time.
+- Orders members by **merged pull requests** for the last 7 days, this month, or all time.
 - Shows a feed of recent contributions, per-member pages, and team totals.
 - Syncs itself **every night at 2:00 AM** in your office timezone, or on demand from the header.
 
@@ -35,7 +35,7 @@ Contributions to repositories a member owns themselves are ignored by default, s
 
 ### Per-member pages
 
-Every merged pull request a person has landed, which repositories they land in most, and the issues they have filed.
+Every merged pull request a person has landed, which repositories they land in most, and the issues they have filed. Merged, pending and closed pull requests are tabbed, and long lists page in twenty at a time.
 
 ![A member page](docs/screenshots/member.png)
 
@@ -97,13 +97,24 @@ All settings live in `.env`. Copy `.env.example` to start.
 | `INCLUDE_OWN_REPOS` | `false` | Set `true` to also count activity on repos the member owns. |
 | `REQUIRED_ORG` | *(empty)* | GitHub orgs (can be single, or multiple comma-separated) new members must belong to — any one is enough. Syncs re-check and flag departures. Empty allows anyone. |
 | `DB_PORT` | `5439` | Host port Postgres is published on. 5432 is often already taken. |
-| `APP_TZ` | `UTC` | IANA timezone that defines "this week" and "this month" boundaries, e.g. `Asia/Dhaka`. **Not** `TZ` — Vercel reserves that name. |
+| `SYNC_HOUR` | `2` | Hour (0-23, in `APP_TZ`) the nightly sync runs. Docker Compose only — on Vercel the schedule lives in `vercel.json`, in UTC. |
+| `CRON_SECRET` | *(empty)* | When set, `GET /api/sync` requires `Authorization: Bearer <secret>`, so a public deployment cannot be synced by anyone who finds the URL. |
+| `APP_TZ` | `UTC` | IANA timezone that defines the "last 7 days" and "this month" boundaries, e.g. `Asia/Dhaka`. **Not** `TZ` — Vercel reserves that name. |
 
 ### The GitHub token
 
 Without a token the GitHub search API allows **10 requests per minute**, which makes a sync for even a handful of people take several minutes. With one you get 30 per minute.
 
-Create a token at <https://github.com/settings/tokens>. **No scopes are needed** if you only track public contributions. Put it in `.env` as `GITHUB_TOKEN`.
+Create a **classic** token at <https://github.com/settings/tokens>. Put it in `.env` as `GITHUB_TOKEN`.
+
+Scopes:
+
+- Tracking public contributions only: **no scopes needed**.
+- Using `REQUIRED_ORG`: **`read:org` is required**, and the token's owner must be a member of the organisation.
+
+That second point is easy to get wrong and fails quietly. `GET /orgs/{org}/members/{username}` only reveals **private** memberships to a token that has visibility into that org; otherwise GitHub redirects to the public-members endpoint and everyone whose membership is private comes back as "not a member". Registration then rejects them, and syncs flag them as having left. Most organisations have private membership by default — one of ours shows 2 public members out of 19.
+
+A plain member's token with `read:org` is enough; you do not need to own the org. Use a classic token rather than a fine-grained one, since fine-grained tokens need an org owner to approve them.
 
 `.env` is gitignored. Keep it that way — never commit a token.
 
@@ -130,21 +141,27 @@ Route handlers under `app/api` are the entire backend.
 
 ```
 app/                    Next.js App Router
-  page.tsx              The board (week / month / all time)
-  members/              Member list and per-member pages
+  page.tsx              The board (last 7 days / this month / all time)
+  loading.tsx           Skeleton shown while the board's queries run
+  members/              Member list and per-member pages, each with a skeleton
   api/                  Route handlers — the backend
 components/             Presentational React components
+  member-lists.tsx      Tabbed, paged contribution lists on a member page
+  SyncStatus.tsx        The header's sync label, suspended on its own
 lib/
   db.ts                 pg connection pool
   queries.ts            Every SQL read the app performs
   github.ts             GitHub search API client and the sync routine
-  period.ts             Week / month / all-time window maths
+  period.ts             Rolling 7 days / month / all-time window maths
   points.ts             Per-type weights for the DB `points` column
   format.ts             Number and date formatting
+  rate-limit.ts         In-memory limiter for the unauthenticated write routes
 db/schema.sql           The whole schema, idempotent
 scripts/
   migrate.mjs           Applies db/schema.sql (runs on container start)
+  scheduler.mjs         Nightly sync loop for self-hosted deployments
   seed.mjs              Demo data
+vercel.json             Nightly cron for Vercel deployments
 design/                 Design canvas source (main direction + two alternates)
 ```
 

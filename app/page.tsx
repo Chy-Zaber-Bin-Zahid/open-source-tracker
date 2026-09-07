@@ -15,9 +15,13 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   const [stats, feed] = await Promise.all([getTeamStats(period, standings), getFeed({ limit: 10, since: periodStart(period) })]);
 
   const subtitle =
-    period === "week" ? "Pull requests merged this week" : period === "month" ? "Pull requests merged this month" : "Every pull request merged so far";
+    period === "week"
+      ? "Pull requests merged in the last 7 days"
+      : period === "month"
+        ? "Pull requests merged this month"
+        : "Every pull request merged so far";
   const mergedDelta = stats.mergedPrev === null ? null : stats.merged - stats.mergedPrev;
-  const prevLabel = period === "week" ? "last week" : "last month";
+  const prevLabel = period === "week" ? "the 7 days before" : "last month";
 
   return (
     <div className="flex flex-col gap-8 pt-11">
@@ -57,7 +61,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
             <span className="text-lg font-extrabold tracking-tight">Recent contributions</span>
             <span className="flex items-center gap-1.5 text-xs text-ink-dim">
               <span className="h-2 w-2 rounded-full bg-lime" />
-              {period === "week" ? "this week" : period === "month" ? "this month" : "all time"}
+              {period === "week" ? "last 7 days" : period === "month" ? "this month" : "all time"}
             </span>
           </div>
           <FeedList items={feed} compact />

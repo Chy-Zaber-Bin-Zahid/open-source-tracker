@@ -72,7 +72,9 @@ export async function getStandings(period: Period): Promise<Standing[]> {
             COUNT(c.id) FILTER (WHERE c.type = 'review')::int AS reviews,
             COUNT(c.id) FILTER (WHERE c.type = 'issue')::int AS issues,
             COUNT(c.id) FILTER (WHERE c.type = 'pr_opened')::int AS opened,
-            COUNT(c.id) FILTER (WHERE c.type = 'pr_merged' AND c.occurred_at >= now() - interval '7 days')::int AS week_merged
+            -- Same window as the "Last 7 days" tab and the sparkline: WEEK_DAYS whole
+            -- days ending today, in the session timezone (set to APP_TZ by lib/db.ts).
+            COUNT(c.id) FILTER (WHERE c.type = 'pr_merged' AND c.occurred_at >= now()::date - interval '6 days')::int AS week_merged
      FROM members m
      LEFT JOIN contributions c ON c.member_id = m.id AND ($1::timestamptz IS NULL OR c.occurred_at >= $1)
      GROUP BY m.id

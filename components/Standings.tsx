@@ -51,10 +51,10 @@ export function Standings({ standings }: { standings: Standing[] }) {
                 {s.week_merged > 0 ? (
                   <span className="num flex items-center gap-0.5 text-[11px] text-lime">
                     <ArrowUpIcon width={10} height={10} />
-                    {s.week_merged} this week
+                    {s.week_merged} in 7 days
                   </span>
                 ) : (
-                  <span className="num text-[11px] text-ink-dim">none this week</span>
+                  <span className="num text-[11px] text-ink-dim">none in 7 days</span>
                 )}
               </div>
             </Link>

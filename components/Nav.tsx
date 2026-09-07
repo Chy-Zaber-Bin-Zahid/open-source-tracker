@@ -1,13 +1,11 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { MergeIcon } from "./icons";
 import { NavLinks } from "./NavLinks";
 import { SyncButton } from "./SyncButton";
-import { getLastSync } from "@/lib/queries";
-import { timeAgo } from "@/lib/format";
+import { SyncStatus, SyncStatusFallback } from "./SyncStatus";
 
-export async function Nav() {
-  const last = await getLastSync().catch(() => null);
-  const label = !last ? "never synced" : last.finished_at ? `last sync ${timeAgo(last.finished_at)}` : "syncing…";
+export function Nav() {
   return (
     <header className="border-b border-line-soft">
       <div className="mx-auto flex min-h-[72px] w-full max-w-[1440px] flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 py-3 sm:px-10 sm:py-0">
@@ -21,7 +19,9 @@ export async function Nav() {
           <NavLinks />
         </div>
         <div className="flex items-center gap-3">
-          <span className="num hidden text-xs text-ink-dim sm:inline">{label}</span>
+          <Suspense fallback={<SyncStatusFallback />}>
+            <SyncStatus />
+          </Suspense>
           <SyncButton />
         </div>
       </div>

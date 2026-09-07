@@ -27,7 +27,7 @@ export function FeedList({ items, compact = false }: { items: FeedItem[]; compac
           <div className="min-w-0 flex-1">
             <p className="text-sm leading-snug">
               <Link href={`/members/${it.github_login}`} className="font-bold hover:text-lime">{compact ? it.display_name.split(" ")[0] : it.display_name}</Link> {TYPE_VERB[it.type]}{" "}
-              <a href={it.url} target="_blank" rel="noreferrer" className="text-lime hover:text-lime-soft">
+              <a href={it.url} target="_blank" rel="noreferrer" className="font-bold hover:text-lime hover:underline">
                 {it.title}
               </a>
             </p>

@@ -50,3 +50,30 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 .rise { animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+/* Placeholder blocks for the loading skeletons. Kept subtle: a skeleton that
+   pulses hard reads as broken rather than busy. */
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.skeleton {
+  display: block;
+  background: var(--color-surface-2);
+  border-radius: 8px;
+  animation: pulse-soft 1.4s ease-in-out infinite;
+}
+
+/* Anything that loops forever has to respect this, or it is an accessibility
+   problem for people who get motion sick. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .rise { animation: none; opacity: 1; transform: none; }
+  .skeleton { animation: none; opacity: 0.7; }
+}

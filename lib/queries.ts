@@ -22,7 +22,7 @@ export type Standing = {
   issues: number;
   opened: number;
   week_merged: number;
-  rank: number;
+  rank: number | null; // null when nothing was merged in the period: no merges, no place
   spark: number[]; // merged PRs per day, last 7 days, oldest first
   streak: number; // consecutive active days ending today or yesterday
 };
@@ -111,9 +111,10 @@ export async function getStandings(period: Period): Promise<Standing[]> {
     daysByMember.set(r.member_id, arr);
   }
 
+  // Rows are sorted by merged count, so the ranked members form a prefix.
   return rows.map((row, i) => ({
     ...row,
-    rank: i + 1,
+    rank: row.merged > 0 ? i + 1 : null,
     spark: sparkByMember.get(row.id) ?? new Array(7).fill(0),
     streak: computeStreak(daysByMember.get(row.id) ?? []),
   }));

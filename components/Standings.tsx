@@ -33,7 +33,7 @@ export function Standings({ standings }: { standings: Standing[] }) {
           )}
           {standings.map((s) => (
             <Link key={s.id} href={`/members/${s.github_login}`} className={`grid ${cols} h-[68px] items-center gap-4 border-t border-line-soft px-5 transition hover:bg-surface-2`}>
-              <span className={`num font-bold ${s.rank === 1 ? "text-lime" : "text-ink-muted"}`}>{s.rank}</span>
+              <span className={`num font-bold ${s.rank === 1 ? "text-lime" : s.rank === null ? "text-ink-dim" : "text-ink-muted"}`}>{s.rank ?? "–"}</span>
               <div className="flex min-w-0 items-center gap-3">
                 <Avatar login={s.github_login} name={s.display_name} className={s.rank === 1 ? "bg-lime text-bg" : "bg-[#24262a] text-ink-muted"} />
                 <div className="flex min-w-0 flex-col">

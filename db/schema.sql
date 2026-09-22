@@ -68,3 +68,12 @@ CREATE TABLE IF NOT EXISTS sync_runs (
   inserted     INTEGER NOT NULL DEFAULT 0,
   message      TEXT
 );
+
+-- v7: burger parties. The office buys a round of burgers for every merged PR; this
+-- records which PRs have had theirs. Keyed by PR URL rather than contribution id so
+-- a PR credited to two members is one burger, and a resync can never drop a mark.
+CREATE TABLE IF NOT EXISTS burger_done (
+  url        TEXT PRIMARY KEY,
+  marked_by  TEXT NOT NULL,
+  marked_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);

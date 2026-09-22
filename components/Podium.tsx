@@ -73,22 +73,25 @@ function Leader({ s }: { s: Standing }) {
 }
 
 export function Podium({ standings }: { standings: Standing[] }) {
-  const [first, second, third] = standings;
-  if (!first) return null;
+  if (standings.length === 0) return null;
+  // Only members who merged something in the period get a spot.
+  const [first, second, third] = standings.filter((s) => s.rank !== null);
+  // With spare teammates the gap is "nobody else merged", not "nobody to rank".
+  const note = standings.some((s) => s.rank === null) ? "No merged PRs yet in this period." : "Add a teammate to fill this spot.";
   return (
     <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-3">
-      <div className="order-2 md:order-1">{second ? <Runner s={second} tone="silver" /> : <EmptySlot rank={2} />}</div>
-      <div className="order-1 md:order-2"><Leader s={first} /></div>
-      <div className="order-3">{third ? <Runner s={third} tone="bronze" /> : <EmptySlot rank={3} />}</div>
+      <div className="order-2 md:order-1">{second ? <Runner s={second} tone="silver" /> : <EmptySlot rank={2} note={note} />}</div>
+      <div className="order-1 md:order-2">{first ? <Leader s={first} /> : <EmptySlot rank={1} note={note} />}</div>
+      <div className="order-3">{third ? <Runner s={third} tone="bronze" /> : <EmptySlot rank={3} note={note} />}</div>
     </div>
   );
 }
 
-function EmptySlot({ rank }: { rank: number }) {
+function EmptySlot({ rank, note }: { rank: number; note: string }) {
   return (
     <div className="flex h-full min-h-[160px] flex-col items-start justify-between rounded-card border border-dashed border-line p-6 text-ink-dim">
       <span className="num text-[13px] font-bold">#{rank}</span>
-      <span className="text-sm">Add a teammate to fill this spot.</span>
+      <span className="text-sm">{note}</span>
     </div>
   );
 }

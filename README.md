@@ -100,6 +100,17 @@ All settings live in `.env`. Copy `.env.example` to start.
 | `SYNC_HOUR` | `2` | Hour (0-23, in `APP_TZ`) the nightly sync runs. Docker Compose only — on Vercel the schedule lives in `vercel.json`, in UTC. |
 | `CRON_SECRET` | *(empty)* | When set, `GET /api/sync` requires `Authorization: Bearer <secret>`, so a public deployment cannot be synced by anyone who finds the URL. |
 | `APP_TZ` | `UTC` | IANA timezone that defines the "last 7 days" and "this month" boundaries, e.g. `Asia/Dhaka`. **Not** `TZ` — Vercel reserves that name. |
+| `BURGER_ADMINS` | *(empty)* | Comma-separated GitHub logins allowed to mark burger parties done. Empty means nobody can. |
+| `BURGER_SINCE` | `2026-08-25T13:03:18Z` | Only PRs merged at or after this ISO timestamp are on the burger page. The default is laravel/framework#61305. |
+| `GITHUB_OAUTH_CLIENT_ID` | *(empty)* | GitHub OAuth App client ID, for Sign in with GitHub on the burger page. |
+| `GITHUB_OAUTH_CLIENT_SECRET` | *(empty)* | That app's client secret. |
+| `AUTH_SECRET` | *(empty)* | Signs the session cookie. Any long random string, e.g. `openssl rand -base64 32`. |
+
+### Burger parties
+
+The office buys burgers for every merged PR. `/burgers` lists each PR merged since `BURGER_SINCE` as **due** or **done**; a PR credited to two members is one burger. Anyone can view it. Marking a party done, or undoing a mark, needs Sign in with GitHub, and the signed-in login must be in `BURGER_ADMINS`. The server checks this on every change, and editing the list takes effect on the next deploy.
+
+To turn sign-in on, create an OAuth App at <https://github.com/settings/developers> with the authorization callback URL `<your site>/api/auth/github/callback` (for local development, `http://localhost:3000/api/auth/github/callback`), then set `GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET` and `AUTH_SECRET`. No scopes are requested; the app only reads the public login and keeps nothing else.
 
 ### The GitHub token
 
@@ -134,6 +145,10 @@ Route handlers under `app/api` are the entire backend.
 | `DELETE` | `/api/members/:id` | Remove a member and all their contributions |
 | `POST` | `/api/sync` | Pull the latest contributions from GitHub for everyone |
 | `GET` | `/api/sync` | Same, for schedulers. Requires `Authorization: Bearer $CRON_SECRET` when that is set |
+| `GET` | `/api/burgers` | Tracked merged PRs with their burger status and totals |
+| `POST` | `/api/burgers` | `{ urls, done }` marks parties done or undoes them. Signed-in `BURGER_ADMINS` only |
+| `GET` | `/api/auth/github` | Starts Sign in with GitHub; `/api/auth/github/callback` finishes it |
+| `POST` | `/api/auth/logout` | Signs out |
 
 ---
 
@@ -144,6 +159,7 @@ app/                    Next.js App Router
   page.tsx              The board (last 7 days / this month / all time)
   loading.tsx           Skeleton shown while the board's queries run
   members/              Member list and per-member pages, each with a skeleton
+  burgers/              Burger parties: which merged PRs have had theirs
   api/                  Route handlers — the backend
 components/             Presentational React components
   member-lists.tsx      Tabbed, paged contribution lists on a member page
@@ -156,6 +172,8 @@ lib/
   points.ts             Per-type weights for the DB `points` column
   format.ts             Number and date formatting
   rate-limit.ts         In-memory limiter for the unauthenticated write routes
+  auth.ts               Sign in with GitHub session cookie and the BURGER_ADMINS check
+  burgers.ts            Burger party reads and writes
 db/schema.sql           The whole schema, idempotent
 scripts/
   migrate.mjs           Applies db/schema.sql (runs on container start)

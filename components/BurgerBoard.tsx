@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { BurgerPR } from "@/lib/burgers";
 import { RepoBadge } from "./member-lists";
 import { BurgerIcon, CheckIcon } from "./icons";
+import { PayerConfirm } from "./PayerConfirm";
 import { timeAgo } from "@/lib/format";
 
 const PAGE_SIZE = 8;
@@ -17,11 +18,15 @@ function paged<T>(items: T[], page: number) {
   return { rows: items.slice(current * PAGE_SIZE, (current + 1) * PAGE_SIZE), current, pages, total: items.length };
 }
 
-export function BurgerBoard({ prs, canMark }: { prs: BurgerPR[]; canMark: boolean }) {
+/** `payer` is the person buying the burgers: marking asks him three times first (see PayerConfirm). */
+export function BurgerBoard({ prs, canMark, payer = false }: { prs: BurgerPR[]; canMark: boolean; payer?: boolean }) {
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const [refreshing, startTransition] = useTransition();
+  const [saving, setSaving] = useState(false);
+  const pending = saving || refreshing;
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<BurgerPR[] | null>(null);
 
   const due = prs.filter((p) => !p.done);
   const done = prs.filter((p) => p.done);
@@ -53,27 +58,46 @@ export function BurgerBoard({ prs, canMark }: { prs: BurgerPR[]; canMark: boolea
     });
   }
 
-  function update(urls: string[], markDone: boolean) {
+  async function update(urls: string[], markDone: boolean): Promise<boolean> {
     setError(null);
-    startTransition(async () => {
-      try {
-        const res = await fetch("/api/burgers", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ urls, done: markDone }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Could not save");
-        setSelected(new Set());
-        router.refresh();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not save");
-      }
-    });
+    setSaving(true);
+    try {
+      const res = await fetch("/api/burgers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ urls, done: markDone }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not save");
+      setSelected(new Set());
+      startTransition(() => router.refresh());
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save");
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function markPicked() {
+    if (payer) {
+      setError(null);
+      setConfirming(picked);
+    } else update(picked.map((p) => p.url), true);
   }
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      {confirming && (
+        <PayerConfirm
+          prs={confirming}
+          saving={saving}
+          error={error}
+          onConfirm={() => update(confirming.map((p) => p.url), true)}
+          onClose={() => setConfirming(null)}
+        />
+      )}
       <section className="flex flex-col self-start overflow-hidden rounded-card border border-line bg-surface">
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 pb-3.5 pt-5">
           <span className="text-lg font-extrabold tracking-tight">
@@ -92,7 +116,7 @@ export function BurgerBoard({ prs, canMark }: { prs: BurgerPR[]; canMark: boolea
               <button
                 type="button"
                 disabled={pending || picked.length === 0}
-                onClick={() => update(picked.map((p) => p.url), true)}
+                onClick={markPicked}
                 className="flex h-[34px] items-center gap-1.5 rounded-[10px] bg-lime px-3 text-[13px] font-extrabold text-bg transition hover:bg-lime-soft disabled:opacity-40"
               >
                 <CheckIcon width={14} height={14} strokeWidth={2.8} />
@@ -161,23 +185,55 @@ export function BurgerBoard({ prs, canMark }: { prs: BurgerPR[]; canMark: boolea
   );
 }
 
+/** Page indexes to show as numbers: first, last and the neighbours of the current one, with gaps as null. */
+function pageNumbers(current: number, pages: number): (number | null)[] {
+  const keep = new Set([0, pages - 1, current - 1, current, current + 1]);
+  const out: (number | null)[] = [];
+  for (let i = 0; i < pages; i++) {
+    if (!keep.has(i)) continue;
+    const prev = out[out.length - 1];
+    if (typeof prev === "number" && i - prev > 1) out.push(i - prev === 2 ? prev + 1 : null);
+    out.push(i);
+  }
+  return out;
+}
+
 function Pager({ view, onPage }: { view: { current: number; pages: number; total: number }; onPage: (page: number) => void }) {
   if (view.pages <= 1) return null;
   const first = view.current * PAGE_SIZE + 1;
   const last = Math.min(view.total, first + PAGE_SIZE - 1);
-  const button =
-    "h-[30px] rounded-[8px] border border-line px-3 text-[13px] font-bold text-ink-muted transition hover:border-ink-dim hover:text-ink disabled:pointer-events-none disabled:opacity-40";
+  const atStart = view.current === 0;
+  const atEnd = view.current >= view.pages - 1;
+  const box =
+    "num flex h-[30px] min-w-[30px] items-center justify-center rounded-[8px] px-2 text-[13px] font-bold transition disabled:pointer-events-none disabled:opacity-30";
+  const idle = `${box} text-ink-muted hover:bg-surface-2 hover:text-ink`;
   return (
-    <nav aria-label="Pages" className="flex items-center justify-between gap-3 border-t border-line-soft px-5 py-3">
-      <button type="button" className={button} disabled={view.current === 0} onClick={() => onPage(view.current - 1)}>
-        ← Prev
-      </button>
+    <nav aria-label="Pages" className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-line-soft px-5 py-3">
       <span className="num text-xs text-ink-dim">
         {first}–{last} of {view.total}
       </span>
-      <button type="button" className={button} disabled={view.current >= view.pages - 1} onClick={() => onPage(view.current + 1)}>
-        Next →
-      </button>
+      <div className="flex items-center gap-0.5">
+        <button type="button" aria-label="First page" className={idle} disabled={atStart} onClick={() => onPage(0)}>«</button>
+        <button type="button" aria-label="Previous page" className={idle} disabled={atStart} onClick={() => onPage(view.current - 1)}>‹</button>
+        {pageNumbers(view.current, view.pages).map((n, i) =>
+          n === null ? (
+            <span key={`gap-${i}`} className="num px-1 text-[13px] text-ink-dim">…</span>
+          ) : (
+            <button
+              key={n}
+              type="button"
+              aria-label={`Page ${n + 1}`}
+              aria-current={n === view.current ? "page" : undefined}
+              className={n === view.current ? `${box} bg-lime text-bg` : idle}
+              onClick={() => onPage(n)}
+            >
+              {n + 1}
+            </button>
+          ),
+        )}
+        <button type="button" aria-label="Next page" className={idle} disabled={atEnd} onClick={() => onPage(view.current + 1)}>›</button>
+        <button type="button" aria-label="Last page" className={idle} disabled={atEnd} onClick={() => onPage(view.pages - 1)}>»</button>
+      </div>
     </nav>
   );
 }

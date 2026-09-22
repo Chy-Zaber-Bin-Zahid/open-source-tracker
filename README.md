@@ -101,6 +101,7 @@ All settings live in `.env`. Copy `.env.example` to start.
 | `CRON_SECRET` | *(empty)* | When set, `GET /api/sync` requires `Authorization: Bearer <secret>`, so a public deployment cannot be synced by anyone who finds the URL. |
 | `APP_TZ` | `UTC` | IANA timezone that defines the "last 7 days" and "this month" boundaries, e.g. `Asia/Dhaka`. **Not** `TZ` — Vercel reserves that name. |
 | `BURGER_ADMINS` | *(empty)* | Comma-separated GitHub logins allowed to mark burger parties done. Empty means nobody can. |
+| `BURGER_PAYERS` | *(empty)* | GitHub logins of whoever pays for the burgers. They can mark parties done too, but have to get through three "are you sure, sir?" confirmations first. |
 | `BURGER_SINCE` | `2026-08-25T13:03:18Z` | Only PRs merged at or after this ISO timestamp are on the burger page. The default is laravel/framework#61305. |
 | `GITHUB_OAUTH_CLIENT_ID` | *(empty)* | GitHub OAuth App client ID, for Sign in with GitHub on the burger page. |
 | `GITHUB_OAUTH_CLIENT_SECRET` | *(empty)* | That app's client secret. |
@@ -108,7 +109,7 @@ All settings live in `.env`. Copy `.env.example` to start.
 
 ### Burger parties
 
-The office buys burgers for every merged PR. `/burgers` lists each PR merged since `BURGER_SINCE` as **due** or **done**; a PR credited to two members is one burger. Anyone can view it. Marking a party done, or undoing a mark, needs Sign in with GitHub, and the signed-in login must be in `BURGER_ADMINS`. The server checks this on every change, and editing the list takes effect on the next deploy.
+The office buys burgers for every merged PR. `/burgers` lists each PR merged since `BURGER_SINCE` as **due** or **done**; a PR credited to two members is one burger. Anyone can view it. Marking a party done, or undoing a mark, needs Sign in with GitHub, and the signed-in login must be in `BURGER_ADMINS` or `BURGER_PAYERS`. Payers get a three-step confirmation, with GIFs from GIPHY, before their marks are saved; that part is only in the UI. The server checks this on every change, and editing the list takes effect on the next deploy.
 
 To turn sign-in on, create an OAuth App at <https://github.com/settings/developers> with the authorization callback URL `<your site>/api/auth/github/callback` (for local development, `http://localhost:3000/api/auth/github/callback`), then set `GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET` and `AUTH_SECRET`. No scopes are requested; the app only reads the public login and keeps nothing else.
 

@@ -28,19 +28,41 @@ export function authConfigured(): boolean {
   return Boolean(process.env.GITHUB_OAUTH_CLIENT_ID && process.env.GITHUB_OAUTH_CLIENT_SECRET && secret());
 }
 
-/** GitHub logins allowed to mark burger parties, from BURGER_ADMINS (comma-separated). */
-export function burgerAdmins(): string[] {
-  return (process.env.BURGER_ADMINS ?? "")
+function logins(value: string | undefined): string[] {
+  return (value ?? "")
     .split(",")
     .map((login) => login.trim().replace(/^@/, ""))
     .filter(Boolean);
 }
 
 /** GitHub logins are case-insensitive, so the comparison is too. */
-export function isBurgerAdmin(login: string | null | undefined): boolean {
+function listed(list: string[], login: string | null | undefined): boolean {
   if (!login) return false;
   const key = login.toLowerCase();
-  return burgerAdmins().some((admin) => admin.toLowerCase() === key);
+  return list.some((entry) => entry.toLowerCase() === key);
+}
+
+/**
+ * The people who pay for the burgers, from BURGER_PAYERS. They may mark parties
+ * too, but the page makes them confirm three times first. That part is a joke,
+ * so it lives in the UI only; the server treats them like any other admin.
+ */
+export function burgerPayers(): string[] {
+  return logins(process.env.BURGER_PAYERS);
+}
+
+export function isBurgerPayer(login: string | null | undefined): boolean {
+  return listed(burgerPayers(), login);
+}
+
+/** Everyone allowed to mark burger parties: BURGER_ADMINS plus BURGER_PAYERS. */
+export function burgerAdmins(): string[] {
+  const admins = logins(process.env.BURGER_ADMINS);
+  return [...admins, ...burgerPayers().filter((payer) => !listed(admins, payer))];
+}
+
+export function isBurgerAdmin(login: string | null | undefined): boolean {
+  return listed(burgerAdmins(), login);
 }
 
 function sign(payload: string, key: string): string {

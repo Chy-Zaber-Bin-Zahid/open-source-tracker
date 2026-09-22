@@ -1,6 +1,6 @@
 import { BurgerBoard } from "@/components/BurgerBoard";
 import { StatTile } from "@/components/StatTile";
-import { authConfigured, burgerAdmins, getViewer, isBurgerAdmin } from "@/lib/auth";
+import { authConfigured, burgerAdmins, getViewer, isBurgerAdmin, isBurgerPayer } from "@/lib/auth";
 import { burgerSince, getBurgerPRs } from "@/lib/burgers";
 import { formatNumber } from "@/lib/format";
 import { APP_TZ } from "@/lib/tz";
@@ -28,7 +28,7 @@ export default async function BurgersPage({ searchParams }: { searchParams: Prom
             One round of burgers for every merged pull request. Tracked since {since}.
           </p>
         </div>
-        <Account viewer={viewer?.login ?? null} canMark={isBurgerAdmin(viewer?.login)} ready={authConfigured()} admins={admins} />
+        <Account viewer={viewer?.login ?? null} canMark={isBurgerAdmin(viewer?.login)} payer={isBurgerPayer(viewer?.login)} ready={authConfigured()} admins={admins} />
       </div>
 
       {auth && AUTH_ERRORS[auth] && (
@@ -41,12 +41,12 @@ export default async function BurgersPage({ searchParams }: { searchParams: Prom
         <StatTile label="Burgers due" value={formatNumber(prs.length - done)} note="still to celebrate" />
       </div>
 
-      <BurgerBoard prs={prs} canMark={isBurgerAdmin(viewer?.login)} />
+      <BurgerBoard prs={prs} canMark={isBurgerAdmin(viewer?.login)} payer={isBurgerPayer(viewer?.login)} />
     </div>
   );
 }
 
-function Account({ viewer, canMark, ready, admins }: { viewer: string | null; canMark: boolean; ready: boolean; admins: string[] }) {
+function Account({ viewer, canMark, payer, ready, admins }: { viewer: string | null; canMark: boolean; payer: boolean; ready: boolean; admins: string[] }) {
   const who = admins.length ? admins.map((a) => `@${a}`).join(", ") : "nobody yet";
   if (!viewer) {
     return (
@@ -72,7 +72,7 @@ function Account({ viewer, canMark, ready, admins }: { viewer: string | null; ca
           </button>
         </form>
       </div>
-      <span className="text-xs text-ink-dim">{canMark ? "You can mark parties done." : `View only. Only ${who} can mark parties done.`}</span>
+      <span className="text-xs text-ink-dim">{payer ? "Welcome, sir. The burgers are on you." : canMark ? "You can mark parties done." : `View only. Only ${who} can mark parties done.`}</span>
     </div>
   );
 }

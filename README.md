@@ -144,7 +144,7 @@ Route handlers under `app/api` are the entire backend.
 | `GET` | `/api/members` | List members |
 | `POST` | `/api/members` | Add a member by GitHub login |
 | `DELETE` | `/api/members/:id` | Remove a member and all their contributions |
-| `POST` | `/api/sync` | Pull the latest contributions from GitHub for everyone |
+| `POST` | `/api/sync` | Pull the latest contributions from GitHub for everyone. Once GitHub sign-in is configured, only tracked members and burger admins may call it. At most once every 5 minutes for the whole site, counted from the end of the last run |
 | `GET` | `/api/sync` | Same, for schedulers. Requires `Authorization: Bearer $CRON_SECRET` when that is set |
 | `GET` | `/api/burgers` | Tracked merged PRs with their burger status and totals |
 | `POST` | `/api/burgers` | `{ urls, done }` marks parties done or undoes them. Signed-in `BURGER_ADMINS` only |

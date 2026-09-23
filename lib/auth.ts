@@ -1,5 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import { getMemberByLogin } from "./queries";
 
 /**
  * Sign in with GitHub, used only to decide who may mark burger parties.
@@ -15,6 +16,7 @@ import { cookies } from "next/headers";
 
 export const SESSION_COOKIE = "ct_session";
 export const STATE_COOKIE = "ct_oauth_state";
+export const NEXT_COOKIE = "ct_oauth_next";
 const SESSION_DAYS = 30;
 
 export type Viewer = { login: string };
@@ -65,6 +67,17 @@ export function isBurgerAdmin(login: string | null | undefined): boolean {
   return listed(burgerAdmins(), login);
 }
 
+/**
+ * Who may press Sync GitHub. Without sign-in configured the button stays open
+ * to all (the endpoint's cooldown still applies); with it, tracked members and
+ * burger admins only.
+ */
+export async function canSync(login: string | null | undefined): Promise<boolean> {
+  if (!authConfigured()) return true;
+  if (!login) return false;
+  return isBurgerAdmin(login) || Boolean(await getMemberByLogin(login));
+}
+
 function sign(payload: string, key: string): string {
   return createHmac("sha256", key).update(payload).digest("base64url");
 }
@@ -97,6 +110,11 @@ export function readSession(value: string | undefined): Viewer | null {
 /** The signed-in visitor, or null. Usable from Server Components and Route Handlers. */
 export async function getViewer(): Promise<Viewer | null> {
   return readSession((await cookies()).get(SESSION_COOKIE)?.value);
+}
+
+/** A same-site path to return to after sign-in, or null for anything else. */
+export function safeNext(value: string | null | undefined): string | null {
+  return value && value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\") ? value : null;
 }
 
 export function newState(): string {

@@ -32,8 +32,14 @@ services:
       APP_TZ: ${APP_TZ:-UTC}
       TZ: ${APP_TZ:-UTC}
       CRON_SECRET: ${CRON_SECRET:-}
+      BURGER_ADMINS: ${BURGER_ADMINS:-}
+      BURGER_PAYERS: ${BURGER_PAYERS:-}
+      BURGER_SINCE: ${BURGER_SINCE:-}
+      GITHUB_OAUTH_CLIENT_ID: ${GITHUB_OAUTH_CLIENT_ID:-}
+      GITHUB_OAUTH_CLIENT_SECRET: ${GITHUB_OAUTH_CLIENT_SECRET:-}
+      AUTH_SECRET: ${AUTH_SECRET:-}
     ports:
-      - "3000:3000"
+      - "${WEB_PORT:-3000}:3000"
 
   # Nightly sync. Sleeps until 02:00 in APP_TZ, pulls from GitHub, repeats —
   # so the Sync now button in the header is only ever needed for an early look.

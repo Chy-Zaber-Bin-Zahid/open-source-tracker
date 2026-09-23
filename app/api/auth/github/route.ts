@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { STATE_COOKIE, authConfigured, cookieBase, newState } from "@/lib/auth";
+import { NEXT_COOKIE, STATE_COOKIE, authConfigured, cookieBase, newState, safeNext } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -17,5 +17,8 @@ export async function GET(req: Request) {
 
   const res = NextResponse.redirect(authorize);
   res.cookies.set(STATE_COOKIE, state, { ...cookieBase, maxAge: 10 * 60 });
+  const next = safeNext(new URL(req.url).searchParams.get("next"));
+  if (next) res.cookies.set(NEXT_COOKIE, next, { ...cookieBase, maxAge: 10 * 60 });
+  else res.cookies.delete(NEXT_COOKIE);
   return res;
 }

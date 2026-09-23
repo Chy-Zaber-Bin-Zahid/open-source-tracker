@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { MergeIcon } from "./icons";
 import { NavLinks } from "./NavLinks";
-import { SyncButton } from "./SyncButton";
+import { SyncControl } from "./SyncControl";
 import { SyncStatus, SyncStatusFallback } from "./SyncStatus";
 
 export function Nav() {
@@ -22,7 +22,9 @@ export function Nav() {
           <Suspense fallback={<SyncStatusFallback />}>
             <SyncStatus />
           </Suspense>
-          <SyncButton />
+          <Suspense fallback={null}>
+            <SyncControl />
+          </Suspense>
         </div>
       </div>
     </header>

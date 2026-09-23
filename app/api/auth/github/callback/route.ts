@@ -1,13 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE, STATE_COOKIE, authConfigured, cookieBase, createSession } from "@/lib/auth";
+import { NEXT_COOKIE, SESSION_COOKIE, STATE_COOKIE, authConfigured, cookieBase, createSession, safeNext } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 function back(req: NextRequest, error?: string) {
-  const url = new URL("/burgers", req.url);
+  // Errors are shown on /burgers, which has the sign-in panel.
+  const url = new URL((!error && safeNext(req.cookies.get(NEXT_COOKIE)?.value)) || "/burgers", req.url);
   if (error) url.searchParams.set("auth", error);
   const res = NextResponse.redirect(url);
   res.cookies.delete(STATE_COOKIE);
+  res.cookies.delete(NEXT_COOKIE);
   return res;
 }
 
